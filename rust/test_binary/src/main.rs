@@ -109,8 +109,19 @@ extern "C" {
     );
 
     fn flush_stdout();
+    fn buffer_reset();
+
+    static tmp_buf_asm: [u8; 1024];
 }
 
+
+fn get_instruction() -> String {
+    // TODO: clean this function!
+    unsafe { 
+        let index = tmp_buf_asm.iter().position(|&r| r == 0).unwrap();
+        CString::new(&tmp_buf_asm[0..index]).unwrap().into_string().unwrap()
+    }
+}
 
 extern "C" fn override_print_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     unsafe { flush_stdout() };
@@ -144,14 +155,14 @@ fn main() {
     let section_name = CString::new(".text").unwrap();
     let section = unsafe { bfd_get_section_by_name(bfd_file, section_name.as_ptr()) };
     if section.is_null() {
-        println!("Error accessing .text section");
+        println!("Error accessing .text section!");
         return;
     }
 
     // Construct disassembler_ftype class
     let disassemble = unsafe { disassembler(bfd_file) };
     if (disassemble as *const c_int).is_null() {
-        println!("Error creating disassembler");
+        println!("Error creating disassembler!");
         return;
     }
 
@@ -164,7 +175,7 @@ fn main() {
 
     // Configure the disassemble_info structure
     info.configure(section, bfd_file);
-    info.set_print_address_func(override_print_address);
+    //info.set_print_address_func(override_print_address);
     info.init();
 
     // Disassemble the binary
@@ -173,12 +184,14 @@ fn main() {
     let section_size = unsafe { get_section_size(section) };
 
     loop {
-        print!("0x{:x}  ", pc);
-        let _ = std::io::stdout().flush();
+        unsafe { buffer_reset() };
         let count = disassemble(pc, raw_info);
+        let instruction = get_instruction();
+
+        println!("0x{:x}  {} {}", pc, count, instruction);
+
         pc += count;
-        unsafe { flush_stdout() };
-        println!("");
+
         if !(count > 0 && pc <= section_size) {
             break;
         }
