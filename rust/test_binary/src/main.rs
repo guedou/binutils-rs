@@ -48,41 +48,71 @@ extern "C" {
 
 
 // libopcodes bindings
-enum DisassembleInfo {}
+enum DisassembleInfoRaw {}
+
+struct DisassembleInfo {
+    info: *const DisassembleInfoRaw,
+}
+
+impl DisassembleInfo {
+    fn new() -> DisassembleInfo {
+        let new_info = unsafe { new_disassemble_info() };
+        DisassembleInfo { info: new_info }
+    }
+
+    fn raw(&self) -> *const DisassembleInfoRaw {
+        self.info
+    }
+
+    fn configure(&self, section: *const Section, bfd: *const Bfd) {
+        unsafe { configure_disassemble_info(self.info, section, bfd) }
+    }
+
+    fn init(&self) {
+        unsafe { disassemble_init_for_target(self.info) };
+    }
+
+    fn set_print_address_func(
+        &self,
+        print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
+    ) {
+        unsafe { set_print_address_func(self.info, print_function) }
+    }
+}
 
 #[link(name = "opcodes-2.28-multiarch")]
 extern "C" {
     fn disassembler(
         bfd: *const Bfd,
-    ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfo) -> c_ulong;
+    ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfoRaw) -> c_ulong;
     /*
      * binutils 2.29.1
     fn disassembler(arc: c_int, big: bool, mach: c_long, bfd: *const c_int) -> *const c_int;
     */
-    fn disassemble_init_for_target(dinfo: *const DisassembleInfo);
+    fn disassemble_init_for_target(dinfo: *const DisassembleInfoRaw);
 }
 
 
 // Custom bindings that ease disassembler_info manipulation
 extern "C" {
-    fn new_disassemble_info() -> *const DisassembleInfo;
+    fn new_disassemble_info() -> *const DisassembleInfoRaw;
     fn configure_disassemble_info(
-        info: *const DisassembleInfo,
+        info: *const DisassembleInfoRaw,
         section: *const Section,
         bfd: *const Bfd,
     );
     fn get_start_address(bfd: *const Bfd) -> c_ulong;
     fn get_section_size(section: *const Section) -> c_ulong;
     fn set_print_address_func(
-        info: *const DisassembleInfo,
-        print_function: extern "C" fn(c_ulong, *const DisassembleInfo),
+        info: *const DisassembleInfoRaw,
+        print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     );
 
     fn flush_stdout();
 }
 
 
-extern "C" fn override_print_address(addr: c_ulong, _info: *const DisassembleInfo) {
+extern "C" fn override_print_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     unsafe { flush_stdout() };
     print!("0x{:x}", addr);
     let _ = std::io::stdout().flush();
@@ -125,26 +155,27 @@ fn main() {
         return;
     }
 
-    // Make a disassemble_info structure
-    let info = unsafe { new_disassemble_info() };
-    if info.is_null() {
+    // Create a disassemble_info structure
+    let info = DisassembleInfo::new();
+    if info.raw().is_null() {
         println!("Error while getting disassemble_info!");
         return;
     }
 
     // Configure the disassemble_info structure
-    unsafe { configure_disassemble_info(info, section, bfd_file) };
-    unsafe { set_print_address_func(info, override_print_address) };
-    unsafe { disassemble_init_for_target(info) };
+    info.configure(section, bfd_file);
+    info.set_print_address_func(override_print_address);
+    info.init();
 
     // Disassemble the binary
+    let raw_info = info.raw();
     let mut pc = unsafe { get_start_address(bfd_file) };
     let section_size = unsafe { get_section_size(section) };
 
     loop {
         print!("0x{:x}  ", pc);
         let _ = std::io::stdout().flush();
-        let count = disassemble(pc, info);
+        let count = disassemble(pc, raw_info);
         pc += count;
         unsafe { flush_stdout() };
         println!("");
