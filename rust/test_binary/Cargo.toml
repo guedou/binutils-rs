@@ -2,6 +2,10 @@
 name = "test_binary"
 version = "0.1.0"
 authors = ["Guillaume Valadon <guillaume@valadon.net>"]
+build = "build.rs"
 
 [dependencies]
 libc = "0.2.40"
+
+[build-dependencies]
+cc = "1.0"
