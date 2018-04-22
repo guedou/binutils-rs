@@ -4,7 +4,8 @@ extern crate libc;
 
 use libc::{c_char, c_int, c_ulong};
 
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
+use std::ptr;
 
 
 // libbfd bindings
@@ -12,8 +13,62 @@ use std::ffi::CStr;
 // Rust bfd types
 // Note: - trick from https://doc.rust-lang.org/nomicon/ffi.html
 //       - it allows to use the Rust type checker
-pub enum Section {}
-pub enum Bfd {}
+pub enum BfdRaw {}
+
+pub struct Bfd {
+    bfd: *const BfdRaw,
+}
+
+impl Bfd {
+    pub fn new() -> Bfd {
+        unsafe { bfd_init() };
+        Bfd { bfd: ptr::null() }
+    }
+
+    pub fn raw(&self) -> *const BfdRaw {
+        self.bfd
+    }
+
+    pub fn openr(&mut self, filename: &str, target: &str) {
+        // TODO: check results!
+        let filename_cstring = CString::new(filename).unwrap();
+        let target_cstring = CString::new(target).unwrap();
+
+        let bfd_file = unsafe { bfd_openr(filename_cstring.as_ptr(), target_cstring.as_ptr()) };
+        if bfd_file.is_null() {
+            let error = unsafe { bfd_get_error() };
+            let msg = unsafe { bfd_errmsg(error) };
+            println!("Error [{}]: {:?}", error, unsafe { CStr::from_ptr(msg) });
+            return;
+        }
+        self.bfd = bfd_file;
+    }
+
+    pub fn check_format(&self, format: BfdFormat) {
+        // TODO: check results!
+        if !unsafe { bfd_check_format(self.bfd, format) } {
+            let error = unsafe { bfd_get_error() };
+            let msg = unsafe { bfd_errmsg(error) };
+            println!("Error [{}]: {:?}", error, unsafe { CStr::from_ptr(msg) });
+            return;
+        }
+    }
+
+    pub fn get_section_by_name(&self, section_name: &str) -> *const Section {
+        let section_name_cstring = CString::new(section_name).unwrap();
+        unsafe { bfd_get_section_by_name(self.bfd, section_name_cstring.as_ptr()) }
+    }
+
+    pub fn disassembler(
+        &self,
+    ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfoRaw) -> c_ulong {
+        unsafe { disassembler(self.bfd) }
+    }
+
+    pub fn get_start_address(&self) -> c_ulong {
+        unsafe { get_start_address(self.bfd) }
+    }
+}
 
 #[allow(non_camel_case_types)] // use the same enum names as libbfd
 #[allow(dead_code)] // don't warn that some variants are not used
@@ -26,18 +81,21 @@ pub enum BfdFormat {
     bfd_type_end,
 }
 
+
+pub enum Section {}
+
 #[link(name = "bfd-2.28-multiarch")]
 extern "C" {
-    pub fn bfd_init();
+    fn bfd_init();
 
     pub fn bfd_get_error() -> c_int;
     pub fn bfd_errmsg(error_tag: c_int) -> *const c_char;
 
-    pub fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const Bfd;
+    pub fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const BfdRaw;
 
-    pub fn bfd_check_format(bfd: *const Bfd, bfd_format: BfdFormat) -> bool;
+    pub fn bfd_check_format(bfd: *const BfdRaw, bfd_format: BfdFormat) -> bool;
 
-    pub fn bfd_get_section_by_name(bfd: *const Bfd, name: *const c_char) -> *const Section;
+    pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const Section;
 
 /*
  * binutils 2.29.1
@@ -64,7 +122,7 @@ impl DisassembleInfo {
         self.info
     }
 
-    pub fn configure(&self, section: *const Section, bfd: *const Bfd) {
+    pub fn configure(&self, section: *const Section, bfd: *const BfdRaw) {
         unsafe { configure_disassemble_info(self.info, section, bfd) }
     }
 
@@ -78,12 +136,13 @@ impl DisassembleInfo {
     ) {
         unsafe { set_print_address_func(self.info, print_function) }
     }
+
 }
 
 #[link(name = "opcodes-2.28-multiarch")]
 extern "C" {
     pub fn disassembler(
-        bfd: *const Bfd,
+        bfd: *const BfdRaw,
     ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfoRaw) -> c_ulong;
     /*
      * binutils 2.29.1
@@ -99,9 +158,9 @@ extern "C" {
     fn configure_disassemble_info(
         info: *const DisassembleInfoRaw,
         section: *const Section,
-        bfd: *const Bfd,
+        bfd: *const BfdRaw,
     );
-    pub fn get_start_address(bfd: *const Bfd) -> c_ulong;
+    fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
     pub fn get_section_size(section: *const Section) -> c_ulong;
     fn set_print_address_func(
         info: *const DisassembleInfoRaw,

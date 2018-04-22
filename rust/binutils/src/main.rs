@@ -1,6 +1,6 @@
 // Guillaume Valadon <guillaume@valadon.net>
 
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 extern crate libc;
 use libc::{c_char, c_int, c_ulong};
@@ -37,46 +37,22 @@ extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleI
 
 fn main() {
 
-    /*
-     * crate API
-    let bfd = Bfd::new();
-    bfd.init();
-    bfd.openr("/bin/ls","elf-x86-64");
-    bfd.check_format(BfdFormat::bfd_object));
-    bfd.get_section_by_name(".text");
-    let disassemble = bfd.disassembler();
-    */
-
-    let filename = CString::new("/bin/ls").unwrap();
-    let target = CString::new("elf64-x86-64").unwrap();
-
-    unsafe { binutils::bfd_init() };
-
-    let bfd_file = unsafe { binutils::bfd_openr(filename.as_ptr(), target.as_ptr()) };
-    if bfd_file.is_null() {
-        let error = unsafe { binutils::bfd_get_error() };
-        let msg = unsafe { binutils::bfd_errmsg(error) };
-        println!("Error [{}]: {:?}", error, unsafe { CStr::from_ptr(msg) });
-        return;
-    }
-
-    if !unsafe { binutils::bfd_check_format(bfd_file, binutils::BfdFormat::bfd_object) } {
-        let error = unsafe { binutils::bfd_get_error() };
-        let msg = unsafe { binutils::bfd_errmsg(error) };
-        println!("Error [{}]: {:?}", error, unsafe { CStr::from_ptr(msg) });
-        return;
-    }
+    let mut bfd = binutils::Bfd::new();
+    // TODO: check errors!
+    bfd.openr("/bin/ls", "elf64-x86-64");
+    bfd.check_format(binutils::BfdFormat::bfd_object);
 
     // Retrieve the .text code section
-    let section_name = CString::new(".text").unwrap();
-    let section = unsafe { binutils::bfd_get_section_by_name(bfd_file, section_name.as_ptr()) };
+    let section_name = ".text";
+    let section = bfd.get_section_by_name(section_name);
     if section.is_null() {
-        println!("Error accessing .text section!");
+        println!("Error accessing '{}' section!", section_name);
         return;
     }
 
     // Construct disassembler_ftype class
-    let disassemble = unsafe { binutils::disassembler(bfd_file) };
+    let bfd_file = bfd.raw();
+    let disassemble = bfd.disassembler();
     if (disassemble as *const c_int).is_null() {
         println!("Error creating disassembler!");
         return;
@@ -96,7 +72,7 @@ fn main() {
 
     // Disassemble the binary
     let raw_info = info.raw();
-    let mut pc = unsafe { binutils::get_start_address(bfd_file) }; // bfd.get_start_address();
+    let mut pc = bfd.get_start_address();
     let section_size = unsafe { binutils::get_section_size(section) }; // bfd.get_section_size();
 
     loop {
@@ -112,9 +88,10 @@ fn main() {
             asm: Vec<u8>,
             dis: String,
         }
+        impl fmt::Display for Instruction {
+        }
         */
 
-        //println!("0x{:x}  {} {}", pc, count, instruction);
         println!("0x{:x}  {}", pc, instruction);
 
         pc += count;
