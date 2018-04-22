@@ -62,8 +62,3 @@ void set_print_address_func(struct disassemble_info *info,  print_address_func p
     info->print_address_func = print_function;
     flush_stdout ();
 }
-
-
-void buffer_reset() {
-    tmp_buf_asm_ptr = tmp_buf_asm;
-}
