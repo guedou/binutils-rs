@@ -115,12 +115,21 @@ extern "C" {
 }
 
 
-fn get_instruction() -> String {
-    // TODO: clean this function!
-    unsafe { 
-        let index = tmp_buf_asm.iter().position(|&r| r == 0).unwrap();
-        CString::new(&tmp_buf_asm[0..index]).unwrap().into_string().unwrap()
-    }
+fn get_instruction() -> String { // Result<String, Error>
+    // Return a String that represents the disassembled instruction
+
+    // Look for the first nul byte in the array
+    let mut buffer_itr = unsafe { tmp_buf_asm.iter() };
+    let index_opt = buffer_itr.position(|&c| c == 0);
+
+    let index = match index_opt {
+        Some(i) => i,
+        None => return String::from("No nul byte found in disassembly result!") // TODO: error
+    };
+
+    // Extract the instruction String
+    let instruction = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index+1]) };
+    String::from(instruction.to_str().unwrap())
 }
 
 extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
