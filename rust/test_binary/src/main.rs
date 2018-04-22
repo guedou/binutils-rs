@@ -124,9 +124,11 @@ fn get_instruction() -> String {
 }
 
 extern "C" fn override_print_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
-    unsafe { flush_stdout() };
-    print!("0x{:x}", addr);
-    let _ = std::io::stdout().flush();
+    // TODO: clean this function!
+    let format = format!("0x{:x}", addr);
+    unsafe {
+        libc::strcat(tmp_buf_asm_ptr, CString::new(format).unwrap().as_ptr());
+    }
 }
 
 
@@ -175,7 +177,7 @@ fn main() {
 
     // Configure the disassemble_info structure
     info.configure(section, bfd_file);
-    //info.set_print_address_func(override_print_address);
+    info.set_print_address_func(override_print_address);
     info.init();
 
     // Disassemble the binary
