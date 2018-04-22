@@ -4,7 +4,6 @@ extern crate libc;
 use libc::{c_char, c_int, c_ulong};
 
 use std::ffi::{CStr, CString};
-use std::io::Write;
 
 
 // libbfd bindings
@@ -108,8 +107,6 @@ extern "C" {
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     );
 
-    fn flush_stdout();
-
     static tmp_buf_asm: [u8; 64];
     static mut tmp_buf_asm_ptr: *mut c_char;
 }
@@ -124,13 +121,14 @@ fn get_instruction() -> String { // Result<String, Error>
 
     let index = match index_opt {
         Some(i) => i,
-        None => return String::from("No nul byte found in disassembly result!") // TODO: error
+        None => return String::from("No nul byte found in disassembly result!"), // TODO: error
     };
 
     // Extract the instruction String
-    let instruction = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index+1]) };
+    let instruction = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index + 1]) };
     String::from(instruction.to_str().unwrap())
 }
+
 
 extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     // Example of C callback that modifies an address used by an instruction
@@ -151,7 +149,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
         // Compute the size of the offset from the base address
         let addr_end = tmp_buf_asm_ptr as usize;
         let addr_start = (&tmp_buf_asm as *const u8) as usize;
-        let offset = addr_end-addr_start;
+        let offset = addr_end - addr_start;
 
         libc::strncat(tmp_buf_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
     }
@@ -159,6 +157,17 @@ extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
 
 
 fn main() {
+
+    /*
+     * crate API
+    let bfd = Bfd::new();
+    bfd.init();
+    bfd.openr("/bin/ls","elf-x86-64");
+    bfd.check_format(BfdFormat::bfd_object));
+    bfd.get_section_by_name(".text");
+    let disassemble = bfd.disassembler();
+    */
+
     let filename = CString::new("/bin/ls").unwrap();
     let target = CString::new("elf64-x86-64").unwrap();
 
@@ -208,18 +217,26 @@ fn main() {
 
     // Disassemble the binary
     let raw_info = info.raw();
-    let mut pc = unsafe { get_start_address(bfd_file) };
-    let section_size = unsafe { get_section_size(section) };
+    let mut pc = unsafe { get_start_address(bfd_file) }; // bfd.get_start_address();
+    let section_size = unsafe { get_section_size(section) }; // bfd.get_section_size();
 
     loop {
         unsafe {
-        // TODO: in disassemble()
-        tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char;
+            // TODO: in disassemble()
+            tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char;
         };
         let count = disassemble(pc, raw_info); // TODO: return an Instruction
         let instruction = get_instruction();
+        /*
+        struct Instruction {
+            length: u8,
+            asm: Vec<u8>,
+            dis: String,
+        }
+        */
 
-        println!("0x{:x}  {} {}", pc, count, instruction);
+        //println!("0x{:x}  {} {}", pc, count, instruction);
+        println!("0x{:x}  {}", pc, instruction);
 
         pc += count;
 

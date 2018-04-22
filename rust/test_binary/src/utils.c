@@ -13,6 +13,7 @@
 char tmp_buf_asm[R_ASM_BUFSIZE];
 char *tmp_buf_asm_ptr = tmp_buf_asm;
 void copy_buffer(void * useless, const char* format, ...) {
+    // TODO: handle this in Rust?
     va_list ap;
 
     va_start(ap, format);
@@ -50,15 +51,8 @@ unsigned long get_section_size(asection *section) {
   return section->size;
 }
 
-
-void flush_stdout() {
-   fflush (stdout);
-}
-
-
 typedef void (*print_address_func) (bfd_vma addr, struct disassemble_info *dinfo);
 
 void set_print_address_func(struct disassemble_info *info,  print_address_func print_function) {
     info->print_address_func = print_function;
-    flush_stdout ();
 }
