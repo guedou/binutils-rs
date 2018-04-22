@@ -111,6 +111,7 @@ extern "C" {
     fn flush_stdout();
 
     static tmp_buf_asm: [u8; 64];
+    static mut tmp_buf_asm_ptr: *mut c_char;
 }
 
 
@@ -122,11 +123,28 @@ fn get_instruction() -> String {
     }
 }
 
-extern "C" fn override_print_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
-    // TODO: clean this function!
-    let format = format!("0x{:x}", addr);
+extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
+    // Example of C callback that modifies an address used by an instruction
+
+    //let fmt = "foo\0bar"; // TODO: use it for unit tests!
+    
+    // Format the address
+    let fmt = format!("0x{:x}", addr);
+    let fmt_cstring = match CString::new(fmt) {
+        Ok(cstr) => cstr,
+        // The following call to unwrap is ok as long as the error message does not contain a NUL byte
+        Err(msg) => CString::new(format!("{}", msg)).unwrap(),
+    };
+
+    // Copy the address to the buffer
     unsafe {
-        libc::strcat(tmp_buf_asm_ptr, CString::new(format).unwrap().as_ptr());
+
+        // Compute the size of the offset from the base address
+        let addr_end = tmp_buf_asm_ptr as usize;
+        let addr_start = (&tmp_buf_asm as *const u8) as usize;
+        let offset = addr_end-addr_start;
+
+        libc::strncat(tmp_buf_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
     }
 }
 
@@ -176,7 +194,7 @@ fn main() {
 
     // Configure the disassemble_info structure
     info.configure(section, bfd_file);
-    info.set_print_address_func(override_print_address);
+    info.set_print_address_func(change_address);
     info.init();
 
     // Disassemble the binary
@@ -185,8 +203,11 @@ fn main() {
     let section_size = unsafe { get_section_size(section) };
 
     loop {
-        unsafe { buffer_reset() };
-        let count = disassemble(pc, raw_info);
+        unsafe {
+        // TODO: in disassemble()
+        tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char;
+        };
+        let count = disassemble(pc, raw_info); // TODO: return an Instruction
         let instruction = get_instruction();
 
         println!("0x{:x}  {} {}", pc, count, instruction);
