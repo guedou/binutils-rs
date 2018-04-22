@@ -9,7 +9,7 @@
 #include <include/dis-asm.h>
 
 
-#define R_ASM_BUFSIZE 1024
+#define R_ASM_BUFSIZE 64
 char tmp_buf_asm[R_ASM_BUFSIZE];
 char *tmp_buf_asm_ptr = tmp_buf_asm;
 void copy_buffer(void * useless, const char* format, ...) {
@@ -32,9 +32,11 @@ void configure_disassemble_info(struct disassemble_info *info, asection *section
     init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer);
     info->arch = bfd_get_arch (bfdFile);
     info->mach = bfd_get_mach (bfdFile);
+    info->section = section;
+
     info->buffer_vma = section->vma;
     info->buffer_length = section->size;
-    info->section = section;
+
     bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
 

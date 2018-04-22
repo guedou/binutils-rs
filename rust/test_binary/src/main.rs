@@ -109,9 +109,8 @@ extern "C" {
     );
 
     fn flush_stdout();
-    fn buffer_reset();
 
-    static tmp_buf_asm: [u8; 1024];
+    static tmp_buf_asm: [u8; 64];
 }
 
 
