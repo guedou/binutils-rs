@@ -65,25 +65,25 @@ int pouet(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disasse
     return 0;
 }
 
-//void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach) {
-typedef int (*copy_buffer_ptr) (bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *dinfo);
-void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach, copy_buffer_ptr copy_function) {
+void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach) {
+//typedef int (*copy_buffer_ptr) (bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *dinfo);
+//void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach, copy_buffer_ptr copy_function) {
   
     init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer);
     info->arch = arch;
     info->mach = mach;
-    //info->read_memory_func = pouet;
-    info->read_memory_func = copy_function;
+    info->read_memory_func = buffer_read_memory;
+    //info->read_memory_func = copy_function;
 }
 
 
 unsigned long get_start_address(bfd *bfdFile) {
-  return bfdFile->start_address;
+    return bfdFile->start_address;
 }
 
 
 unsigned long get_section_size(asection *section) {
-  return section->size;
+    return section->size;
 }
 
 typedef void (*print_address_func) (bfd_vma addr, struct disassemble_info *dinfo);
@@ -94,5 +94,29 @@ void set_print_address_func(struct disassemble_info *info, print_address_func pr
 
 
 unsigned int call_bfd_big_endian(bfd *bfdFile) {
-  return bfd_big_endian(bfdFile);
+    return bfd_big_endian(bfdFile);
+}
+
+void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int length, bfd_vma vma) {
+    info->buffer = buffer;
+    info->buffer_length = length;
+    info->buffer_vma = vma;
+
+    asection section;
+    info->section = &section;
+
+    /*
+    printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);
+    printf("%x\n", info->buffer[0]);
+    printf("%x\n", info->buffer[1]);
+    */
+}
+
+void show_buffer(struct disassemble_info *info) {
+    printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);
+    printf("%p\n", info->buffer);
+    printf("%x\n", info->buffer[0]);
+    printf("%x\n", info->buffer[1]);
+    printf("%x\n", info->buffer[2]);
+    printf("%x\n", info->buffer[3]);
 }

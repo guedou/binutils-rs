@@ -6,6 +6,7 @@ use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
 
 use std::ffi::{CStr, CString};
 use std::fmt;
+use std::mem;
 
 
 #[derive(Debug)]
@@ -108,7 +109,7 @@ impl Bfd {
 
         let disassemble_closure = move |p: c_ulong, di: DisassembleInfo| -> c_ulong {
             unsafe {
-                tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char;
+                tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char; // TODO: not always useful!
             };
             disassemble(p, di.raw())
         };
@@ -194,6 +195,7 @@ pub enum DisassembleInfoRaw {}
 #[derive(Clone, Copy)]
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
+    //buffer: Vec<u8>,
 }
 
 impl DisassembleInfo {
@@ -215,14 +217,14 @@ impl DisassembleInfo {
         unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
-    pub fn configure_buffer(
-        &self,
-        arch: c_uint,
-        mach: c_ulong,
-        copy_function: extern "C" fn(c_ulong, *mut c_uchar, c_uint, *const DisassembleInfoRaw)
-            -> u32,
-    ) {
-        unsafe { configure_disassemble_info_buffer(self.info, arch, mach, copy_function) }
+    pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: Vec<u8>) {
+        unsafe {
+            let new_buffer = buffer.to_vec(); // prevent the vector from being freed
+            let ptr = new_buffer.as_ptr();
+            let len = new_buffer.len();
+            configure_disassemble_info_buffer(self.info, arch, mach);
+            set_buffer(self.info, ptr, len as u32, 0);
+        }
     }
 
     pub fn init(&self) {
@@ -263,8 +265,6 @@ extern "C" {
         info: *const DisassembleInfoRaw,
         arch: c_uint,
         mach: c_ulong,
-        copy_function: extern "C" fn(c_ulong, *mut c_uchar, c_uint, *const DisassembleInfoRaw)
-            -> u32,
     );
     fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
     pub fn get_section_size(section: *const SectionRaw) -> c_ulong;
@@ -272,6 +272,14 @@ extern "C" {
         info: *const DisassembleInfoRaw,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     );
+
+    fn set_buffer(
+        info: *const DisassembleInfoRaw,
+        buffer: *const c_uchar,
+        length: c_uint,
+        vma: c_ulong,
+    );
+    pub fn show_buffer(info: *const DisassembleInfoRaw);
 
     fn call_bfd_big_endian(bfd: *const BfdRaw) -> bool;
 

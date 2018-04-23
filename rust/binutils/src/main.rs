@@ -121,33 +121,6 @@ fn test_ls() {
 }
 
 
-static RUST_BUFFER: [u8; 4] = [0xc3, 0x90, 0x66, 0x90];
-static mut RUST_BUFFER_INDEX: usize = 0;
-
-extern "C" fn rust_buffer_to_c(
-    _memaddr: c_ulong,
-    buffer: *mut c_uchar,
-    length: c_uint,
-    _info: *const binutils::DisassembleInfoRaw,
-) -> c_uint {
-    if length > RUST_BUFFER.len() as u32 {
-        return 1;
-    }
-
-    unsafe {
-        libc::memcpy(
-            buffer as *mut c_void,
-            RUST_BUFFER[RUST_BUFFER_INDEX as usize..RUST_BUFFER_INDEX + length as usize].as_ptr()
-                as *const c_void,
-            length as usize,
-        );
-        RUST_BUFFER_INDEX += length as usize;
-    }
-  
-    return 0;
-}
-
-
 fn test_buffer() {
     println!("---");
     println!("From a buffer");
@@ -204,14 +177,16 @@ fn test_buffer() {
     // Configure the disassemble_info structure
     // Set the arch and mach members
     // TODO: bfd_set_arch_mach
-    info.configure_buffer(bfd_arch_i386, bfd_mach_x86_64, rust_buffer_to_c); // set_arch_mach
+    let buffer = vec![0xc3, 0x90, 0x66, 0x90];
     // TODO: info.set_arch_mach_from_bfd(bfd);
+    info.configure_buffer(bfd_arch_i386, bfd_mach_x86_64, buffer);
     info.init();
 
     // Disassemble the buffer
     let mut pc = 0;
     for _i in 0..3 {
         let count = disassemble(pc, info);
+        //unsafe { binutils::show_buffer(info.raw()) };
         let instruction = match binutils::get_instruction() {
             Ok(i) => i,
             Err(e) => {
@@ -221,6 +196,7 @@ fn test_buffer() {
         };
         println!("0x{:x}  {}", pc, instruction);
         pc += count;
+        //println!("----");
 
         // if pc > buffer.len() { break; }
     }
