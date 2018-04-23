@@ -1,9 +1,10 @@
 // Guillaume Valadon <guillaume@valadon.net>
 
 use std::ffi::CString;
+use std::slice;
 
 extern crate libc;
-use libc::c_ulong;
+use libc::{c_uchar, c_uint, c_ulong, c_void};
 
 extern crate binutils;
 use binutils::{tmp_buf_asm, tmp_buf_asm_ptr};
@@ -35,7 +36,8 @@ extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleI
 }
 
 
-fn main() {
+fn test_ls() {
+    println!("From an ELF");
 
     let bfd = match binutils::Bfd::openr("/bin/ls", "elf64-x86-64") {
         Ok(b) => b,
@@ -90,7 +92,13 @@ fn main() {
     let mut pc = bfd.get_start_address();
     loop {
         let count = disassemble(pc, info); // TODO: return an Instruction
-        let instruction = binutils::get_instruction();
+        let instruction = match binutils::get_instruction() {
+            Ok(i) => i,
+            Err(e) => {
+                println!("{}", e);
+                return;
+            }
+        };
         /*
         struct Instruction {
             length: u8,
@@ -108,5 +116,118 @@ fn main() {
         if !(count > 0 && pc <= section.get_size()) {
             break;
         }
+        break; // TODO: remove
     }
+}
+
+
+static RUST_BUFFER: [u8; 4] = [0xc3, 0x90, 0x66, 0x90];
+static mut RUST_BUFFER_INDEX: usize = 0;
+
+extern "C" fn rust_buffer_to_c(
+    _memaddr: c_ulong,
+    buffer: *mut c_uchar,
+    length: c_uint,
+    _info: *const binutils::DisassembleInfoRaw,
+) -> c_uint {
+    if length > RUST_BUFFER.len() as u32 {
+        return 1;
+    }
+
+    unsafe {
+        libc::memcpy(
+            buffer as *mut c_void,
+            RUST_BUFFER[RUST_BUFFER_INDEX as usize..RUST_BUFFER_INDEX + length as usize].as_ptr()
+                as *const c_void,
+            length as usize,
+        );
+        RUST_BUFFER_INDEX += length as usize;
+    }
+  
+    return 0;
+}
+
+
+fn test_buffer() {
+    println!("---");
+    println!("From a buffer");
+
+    let bfd = binutils::Bfd::empty();
+
+
+    unsafe {
+        // List available architectures
+        let list = binutils::bfd_arch_list();
+        let s = slice::from_raw_parts(list, 128);
+        let mut i = 0;
+        loop {
+            if s[i] == 0 {
+                break;
+            }
+            //println!("{:?}", CStr::from_ptr(s[i] as *const i8).to_str());
+            i += 1;
+        }
+        //println!("---");
+
+        // Retrieve the architecture value
+        let _arch_info = binutils::bfd_scan_arch(CString::new("i386:x86-64").unwrap().as_ptr());
+        //println!("{:?}", arch_info);
+        /* It can be used to retrieve the arch: arch_info->arch */
+
+    };
+    //  grep bfd_mach bfd.h |grep define
+    //  TODO: build a compile time using build.rs ?
+    let _bfd_mach_mep = 1;
+    let bfd_mach_x86_64 = 1 << 3;
+
+    let bfd_arch_i386 = 9;
+
+    //println!("---");
+    // Construct disassembler_ftype class
+    let disassemble = match bfd.raw_disassembler(bfd_arch_i386, false, bfd_mach_x86_64) {
+        Ok(d) => d,
+        Err(e) => {
+            println!("Error with raw_disassembler() - {}", e);
+            return;
+        }
+    };
+
+    // Create a disassemble_info structure
+    let info = match binutils::DisassembleInfo::new() {
+        Ok(i) => i,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    // Configure the disassemble_info structure
+    // Set the arch and mach members
+    // TODO: bfd_set_arch_mach
+    info.configure_buffer(bfd_arch_i386, bfd_mach_x86_64, rust_buffer_to_c); // set_arch_mach
+    // TODO: info.set_arch_mach_from_bfd(bfd);
+    info.init();
+
+    // Disassemble the buffer
+    let mut pc = 0;
+    for _i in 0..3 {
+        let count = disassemble(pc, info);
+        let instruction = match binutils::get_instruction() {
+            Ok(i) => i,
+            Err(e) => {
+                println!("{}", e);
+                return;
+            }
+        };
+        println!("0x{:x}  {}", pc, instruction);
+        pc += count;
+
+        // if pc > buffer.len() { break; }
+    }
+
+}
+
+fn main() {
+    test_ls();
+    test_buffer();
 }

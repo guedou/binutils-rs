@@ -2,7 +2,7 @@
 
 extern crate libc;
 
-use libc::{c_char, c_uint, c_ulong};
+use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
 
 use std::ffi::{CStr, CString};
 use std::fmt;
@@ -45,6 +45,14 @@ impl Bfd {
         self.bfd
     }
 
+    pub fn empty() -> Bfd {
+        // TODO: check results!
+        unsafe { bfd_init() };
+        Bfd {
+            bfd: std::ptr::null(),
+        }
+    }
+
     pub fn openr(filename: &str, target: &str) -> Result<Bfd, Error> {
         // TODO: check results!
         unsafe { bfd_init() };
@@ -77,15 +85,20 @@ impl Bfd {
     }
 
     pub fn disassembler(&self) -> Result<Box<Fn(c_ulong, DisassembleInfo) -> c_ulong>, Error> {
+        let arch = unsafe { bfd_get_arch(self.bfd) };
+        let big_endian = self.is_big_endian();
+        let mach = unsafe { bfd_get_mach(self.bfd) };
+        self.raw_disassembler(arch, big_endian, mach)
+    }
 
-        let disassemble = unsafe {
-            disassembler(
-                bfd_get_arch(self.bfd),
-                false,
-                bfd_get_mach(self.bfd),
-                self.bfd,
-            )
-        };
+    pub fn raw_disassembler(
+        &self,
+        arch: c_uint,
+        big_endian: bool,
+        mach: c_ulong,
+    ) -> Result<Box<Fn(c_ulong, DisassembleInfo) -> c_ulong>, Error> {
+
+        let disassemble = unsafe { disassembler(arch, big_endian, mach, self.bfd) };
 
         if (disassemble as *const c_uint).is_null() {
             return Err(Error::CommonError(String::from(
@@ -104,6 +117,10 @@ impl Bfd {
 
     pub fn get_start_address(&self) -> c_ulong {
         unsafe { get_start_address(self.bfd) }
+    }
+
+    pub fn is_big_endian(&self) -> bool {
+        unsafe { call_bfd_big_endian(self.bfd) }
     }
 }
 
@@ -164,6 +181,8 @@ extern "C" {
 
     pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
 
+    pub fn bfd_arch_list() -> *const uintptr_t;
+    pub fn bfd_scan_arch(string: *const c_char) -> *const c_uint;
     fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
     fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
 }
@@ -194,6 +213,16 @@ impl DisassembleInfo {
 
     pub fn configure(&self, section: Section, bfd: Bfd) {
         unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
+    }
+
+    pub fn configure_buffer(
+        &self,
+        arch: c_uint,
+        mach: c_ulong,
+        copy_function: extern "C" fn(c_ulong, *mut c_uchar, c_uint, *const DisassembleInfoRaw)
+            -> u32,
+    ) {
+        unsafe { configure_disassemble_info_buffer(self.info, arch, mach, copy_function) }
     }
 
     pub fn init(&self) {
@@ -230,6 +259,13 @@ extern "C" {
         section: *const SectionRaw,
         bfd: *const BfdRaw,
     );
+    fn configure_disassemble_info_buffer(
+        info: *const DisassembleInfoRaw,
+        arch: c_uint,
+        mach: c_ulong,
+        copy_function: extern "C" fn(c_ulong, *mut c_uchar, c_uint, *const DisassembleInfoRaw)
+            -> u32,
+    );
     fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
     pub fn get_section_size(section: *const SectionRaw) -> c_ulong;
     fn set_print_address_func(
@@ -237,12 +273,14 @@ extern "C" {
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     );
 
+    fn call_bfd_big_endian(bfd: *const BfdRaw) -> bool;
+
     pub static tmp_buf_asm: [u8; 64];
     pub static mut tmp_buf_asm_ptr: *mut c_char;
 }
 
 
-pub fn get_instruction() -> String { // Result<String, Error>
+pub fn get_instruction() -> Result<String, Error> {
     // Return a String that represents the disassembled instruction
 
     // Look for the first nul byte in the array
@@ -251,10 +289,14 @@ pub fn get_instruction() -> String { // Result<String, Error>
 
     let index = match index_opt {
         Some(i) => i,
-        None => return String::from("No nul byte found in disassembly result!"), // TODO: error
+        None => {
+            return Err(Error::CommonError(String::from(
+                "No nul byte found in disassembly result!",
+            )))
+        }
     };
 
     // Extract the instruction String
     let instruction = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index + 1]) };
-    String::from(instruction.to_str().unwrap())
+    Ok(String::from(instruction.to_str().unwrap()))
 }
