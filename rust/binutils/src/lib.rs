@@ -78,7 +78,15 @@ impl Bfd {
 
     pub fn disassembler(&self) -> Result<Box<Fn(c_ulong, DisassembleInfo) -> c_ulong>, Error> {
 
-        let disassemble = unsafe { disassembler(self.bfd) };
+        let disassemble = unsafe {
+            disassembler(
+                bfd_get_arch(self.bfd),
+                false,
+                bfd_get_mach(self.bfd),
+                self.bfd,
+            )
+        };
+
         if (disassemble as *const c_uint).is_null() {
             return Err(Error::CommonError(String::from(
                 "Error creating disassembler!",
@@ -143,7 +151,7 @@ impl Section {
     }
 }
 
-#[link(name = "bfd-2.28-multiarch")]
+#[link(name = "bfd-2.29.1")]
 extern "C" {
     fn bfd_init();
 
@@ -156,11 +164,8 @@ extern "C" {
 
     pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
 
-/*
- * binutils 2.29.1
-    fn bfd_get_arch(bfd: *const c_int) -> c_int;
-    fn bfd_get_mach(bfd: *const c_int) -> c_long;
-*/
+    fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
+    fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
 }
 
 
@@ -204,15 +209,15 @@ impl DisassembleInfo {
 
 }
 
-#[link(name = "opcodes-2.28-multiarch")]
+#[link(name = "opcodes-2.29.1")]
 extern "C" {
     pub fn disassembler(
+        arc: c_uint,
+        big_endian: bool,
+        mach: c_ulong,
         bfd: *const BfdRaw,
     ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfoRaw) -> c_ulong;
-    /*
-     * binutils 2.29.1
-    fn disassembler(arc: c_int, big: bool, mach: c_long, bfd: *const c_int) -> *const c_int;
-    */
+
     fn disassemble_init_for_target(dinfo: *const DisassembleInfoRaw);
 }
 

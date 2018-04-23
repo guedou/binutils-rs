@@ -88,8 +88,6 @@ fn main() {
 
     // Disassemble the binary
     let mut pc = bfd.get_start_address();
-    let section_size = section.get_size();
-
     loop {
         let count = disassemble(pc, info); // TODO: return an Instruction
         let instruction = binutils::get_instruction();
@@ -107,7 +105,7 @@ fn main() {
 
         pc += count;
 
-        if !(count > 0 && pc <= section_size) {
+        if !(count > 0 && pc <= section.get_size()) {
             break;
         }
     }

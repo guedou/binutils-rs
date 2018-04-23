@@ -2,6 +2,7 @@
 name = "binutils"
 version = "0.1.0"
 authors = ["Guillaume Valadon <guillaume@valadon.net>"]
+description = "FFI bindings for the binutils libraries"
 build = "build.rs"
 
 [dependencies]

@@ -9,4 +9,7 @@ fn main() {
         .file("src/utils.c")
         .include("/usr/")
         .compile("utils");
+
+    // Locally compiled binutils libraries path
+    println!("cargo:rustc-link-search={}", "../../binutils-2.29.1/built/lib/");
 }

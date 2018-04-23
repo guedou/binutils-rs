@@ -1,0 +1,9 @@
+[x] newer binutils version
+[_] disassemble a buffer
+[_] build binutils with cargo
+[_] use features to select architectures
+
+[_] make disassemble return an Instruction structure
+[_] write examples
+[_] write tests
+[_] make disassemble return an interator
