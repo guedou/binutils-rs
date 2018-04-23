@@ -3,7 +3,7 @@
 use std::ffi::CString;
 
 extern crate libc;
-use libc::{c_char, c_int, c_ulong};
+use libc::c_ulong;
 
 extern crate binutils;
 use binutils::{tmp_buf_asm, tmp_buf_asm_ptr};
@@ -37,50 +37,61 @@ extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleI
 
 fn main() {
 
-    let mut bfd = binutils::Bfd::new();
-    // TODO: check errors!
-    bfd.openr("/bin/ls", "elf64-x86-64");
-    bfd.check_format(binutils::BfdFormat::bfd_object);
+    let bfd = match binutils::Bfd::openr("/bin/ls", "elf64-x86-64") {
+        Ok(b) => b,
+        Err(e) => {
+            println!("Error with openr() - {}", e);
+            return;
+        }
+    };
+    
+    let error = bfd.check_format(binutils::BfdFormat::bfd_object);
+    match error {
+        None => (),
+        Some(e) => {
+            println!("Error with check_format() - {}", e);
+            return;
+        }
+    };
 
     // Retrieve the .text code section
-    let section_name = ".text";
-    let section = bfd.get_section_by_name(section_name);
-    if section.is_null() {
-        println!("Error accessing '{}' section!", section_name);
-        return;
-    }
+    let section = match bfd.get_section_by_name(".text") {
+        Ok(s) => s,
+        Err(e) => {
+            println!("Error with get_section_by_name() - {}", e);
+            return;
+        }
+    };
 
     // Construct disassembler_ftype class
-    let bfd_file = bfd.raw();
-    let disassemble = bfd.disassembler();
-    if (disassemble as *const c_int).is_null() {
-        println!("Error creating disassembler!");
-        return;
-    }
+    let disassemble = match bfd.disassembler() {
+        Ok(d) => d,
+        Err(e) => {
+            println!("Error with disassembler() - {}", e);
+            return;
+        }
+    };
 
     // Create a disassemble_info structure
-    let info = binutils::DisassembleInfo::new();
-    if info.raw().is_null() {
-        println!("Error while getting disassemble_info!");
-        return;
-    }
+    let info = match binutils::DisassembleInfo::new() {
+        Ok(i) => i,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
 
     // Configure the disassemble_info structure
-    info.configure(section, bfd_file);
+    info.configure(section, bfd);
     info.set_print_address_func(change_address);
     info.init();
 
     // Disassemble the binary
-    let raw_info = info.raw();
     let mut pc = bfd.get_start_address();
-    let section_size = unsafe { binutils::get_section_size(section) }; // bfd.get_section_size();
+    let section_size = section.get_size();
 
     loop {
-        unsafe {
-            // TODO: in disassemble()
-            tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char;
-        };
-        let count = disassemble(pc, raw_info); // TODO: return an Instruction
+        let count = disassemble(pc, info); // TODO: return an Instruction
         let instruction = binutils::get_instruction();
         /*
         struct Instruction {
