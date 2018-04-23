@@ -6,7 +6,6 @@ use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
 
 use std::ffi::{CStr, CString};
 use std::fmt;
-use std::mem;
 
 
 #[derive(Debug)]

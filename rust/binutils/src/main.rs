@@ -4,7 +4,7 @@ use std::ffi::CString;
 use std::slice;
 
 extern crate libc;
-use libc::{c_uchar, c_uint, c_ulong, c_void};
+use libc::c_ulong;
 
 extern crate binutils;
 use binutils::{tmp_buf_asm, tmp_buf_asm_ptr};
