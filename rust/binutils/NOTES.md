@@ -1,5 +1,5 @@
 ```
-export LD_LIBRARY_PATH=../../binutils-2.29.1/built/lib
+export LD_LIBRARY_PATH=binutils-2.29.1/built/lib
 cargo run
 
 rustup component add rustfmt-preview

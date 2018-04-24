@@ -1,13 +1,14 @@
 // Guillaume Valadon <guillaume@valadon.net>
 
+#include <config.h>
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <include/bfd.h>
-#include <include/dis-asm.h>
+#include <bfd.h>
+#include <dis-asm.h>
 
 // Silly macro that helps removing the unused warnings
 #define UNUSED_VARIABLE(id) id=id
