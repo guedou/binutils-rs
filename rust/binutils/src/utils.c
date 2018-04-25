@@ -87,6 +87,11 @@ void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int le
     info->section = section;
 }
 
+void free_disassemble_info(struct disassemble_info *info) {
+  free(info->section);
+  free(info);
+}
+
 
 void show_buffer(struct disassemble_info *info) {
     printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);

@@ -7,10 +7,11 @@
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [ ] download binutils with curl or git
 [ ] generate mach.rs with build.rs
-[ ] implement the DisassemleInfo destructor
+[x] implement the DisassemleInfo destructor
+[ ] rename tmp_buf_asm
 
-[ ] make disassemble return an Instruction structure
-[ ] make disassemble return an interator
+[x] make disassemble return an Instruction structure
+[ ] make disassemble return an iterator
 
 [ ] build a high level API to disassemble a section from an ELF and a buffer
     disassemble_elf_section!("file", ".text")

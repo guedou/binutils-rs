@@ -65,7 +65,7 @@ impl Bfd {
         Ok(Section::from_raw(section))
     }
 
-    pub fn disassembler(&self) -> Result<Box<Fn(c_ulong, DisassembleInfo) -> c_ulong>, Error> {
+    pub fn disassembler(&self) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
         let arch = unsafe { bfd_get_arch(self.bfd) };
         let big_endian = self.is_big_endian();
         let mach = unsafe { bfd_get_mach(self.bfd) };
@@ -77,7 +77,7 @@ impl Bfd {
         arch: c_uint,
         big_endian: bool,
         mach: c_ulong,
-    ) -> Result<Box<Fn(c_ulong, DisassembleInfo) -> c_ulong>, Error> {
+    ) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
 
         let disassemble = unsafe { super::disassembler(arch, big_endian, mach, self.bfd) };
 
@@ -87,7 +87,7 @@ impl Bfd {
             )));
         };
 
-        let disassemble_closure = move |p: c_ulong, di: DisassembleInfo| -> c_ulong {
+        let disassemble_closure = move |p: c_ulong, di: &DisassembleInfo| -> c_ulong {
             unsafe {
                 tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char; // TODO: not always useful!
             };

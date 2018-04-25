@@ -91,23 +91,14 @@ fn test_ls() {
     // Disassemble the binary
     let mut pc = bfd.get_start_address();
     loop {
-        let count = disassemble(pc, info); // TODO: return an Instruction
-        let instruction = match binutils::get_instruction() {
+        let count = disassemble(pc, &info);
+        let instruction = match binutils::get_instruction(pc, count) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
                 return;
             }
         };
-        /*
-        struct Instruction {
-            length: u8,
-            asm: Vec<u8>,
-            dis: String,
-        }
-        impl fmt::Display for Instruction {
-        }
-        */
 
         println!("0x{:x}  {}", pc, instruction);
 
@@ -153,22 +144,26 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     };
 
     // Configure the disassemble_info structure
-    info.configure_buffer(bfd_arch, mach, buffer);
+    info.configure_buffer(bfd_arch, mach, &buffer);
     info.init();
 
     // Disassemble the buffer
     let mut pc = 0;
     for _i in 0..3 {
-        let count = disassemble(pc, info);
-        let instruction = match binutils::get_instruction() {
+        let count = disassemble(pc, &info);
+        let instruction = match binutils::get_instruction(pc, count) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
                 return;
             }
         };
-        println!("0x{:x}  {}", pc, instruction);
+        println!("{}", instruction);
         pc += count;
+    }
+
+    for instruction in disassemble_iter(pc, &info) {
+        println!("{}", instruction);
     }
 }
 

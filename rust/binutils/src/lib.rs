@@ -11,7 +11,6 @@ use libc::{c_char, c_uchar, c_uint, c_ulong};
 
 use std::ffi::CStr;
 use std::fmt;
-use std::mem;
 
 use bfd::{Bfd, BfdRaw};
 
@@ -62,7 +61,7 @@ impl Section {
 // libopcodes bindings
 pub enum DisassembleInfoRaw {}
 
-#[derive(Clone, Copy)]
+//#[derive(Clone, Copy)]
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
 }
@@ -86,7 +85,7 @@ impl DisassembleInfo {
         unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
-    pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: Vec<u8>) {
+    pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: &Vec<u8>) {
         unsafe {
             //let new_buffer = buffer; //.to_vec(); // prevent the vector from being freed
             let ptr = buffer.as_ptr();
@@ -98,7 +97,6 @@ impl DisassembleInfo {
                 mep_disassemble_info(self.info);
             }
         }
-        mem::forget(buffer);
     }
 
     pub fn init(&self) {
@@ -113,16 +111,14 @@ impl DisassembleInfo {
     }
 }
 
-/*
 impl Drop for DisassembleInfo {
     fn drop(&mut self) {
-        println!("destructor called!");
-
-        // - free the malloc section
-        // - release the forget buffer
+        unsafe {
+            free_disassemble_info(self.info);
+        };
     }
 }
-*/
+
 
 #[link(name = "opcodes-2.29.1")]
 extern "C" {
@@ -165,6 +161,7 @@ extern "C" {
         length: c_uint,
         vma: c_ulong,
     );
+    pub fn free_disassemble_info(info: *const DisassembleInfoRaw);
     pub fn show_buffer(info: *const DisassembleInfoRaw);
 
     fn call_bfd_big_endian(bfd: *const BfdRaw) -> bool;
@@ -174,9 +171,7 @@ extern "C" {
 }
 
 
-pub fn get_instruction() -> Result<String, Error> {
-    // Return a String that represents the disassembled instruction
-
+pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, Error> {
     // Look for the first nul byte in the array
     let mut buffer_itr = unsafe { tmp_buf_asm.iter() };
     let index_opt = buffer_itr.position(|&c| c == 0);
@@ -190,7 +185,23 @@ pub fn get_instruction() -> Result<String, Error> {
         }
     };
 
-    // Extract the instruction String
-    let instruction = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index + 1]) };
-    Ok(String::from(instruction.to_str().unwrap()))
+    // Extract the instruction string
+    let opcode_raw = unsafe { CStr::from_bytes_with_nul_unchecked(&tmp_buf_asm[0..index + 1]) };
+    let opcode = opcode_raw.to_str().unwrap();
+
+    Ok(Instruction { offset: offset, length: length, opcode: opcode})
+}
+
+
+pub struct Instruction<'a> {
+    length: u64,
+    offset: u64,
+    opcode: &'a str,
+    //bytes: Vec<u8>,
+}
+
+impl<'a> fmt::Display for Instruction<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "0x{:x} {}", self. offset, self.opcode)
+    }
 }
