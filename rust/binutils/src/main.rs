@@ -1,13 +1,14 @@
 // Guillaume Valadon <guillaume@valadon.net>
+// binutils - main.rs
 
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::slice;
 
 extern crate libc;
 use libc::c_ulong;
 
 extern crate binutils;
-use binutils::{tmp_buf_asm, tmp_buf_asm_ptr};
+use binutils::{tmp_buf_asm, tmp_buf_asm_ptr, bfd};
 
 
 extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleInfoRaw) {
@@ -39,15 +40,15 @@ extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleI
 fn test_ls() {
     println!("From an ELF");
 
-    let bfd = match binutils::Bfd::openr("/bin/ls", "elf64-x86-64") {
+    let bfd = match bfd::Bfd::openr("/bin/ls", "elf64-x86-64") {
         Ok(b) => b,
         Err(e) => {
             println!("Error with openr() - {}", e);
             return;
         }
     };
-    
-    let error = bfd.check_format(binutils::BfdFormat::bfd_object);
+
+    let error = bfd.check_format(bfd::BfdFormat::bfd_object);
     match error {
         None => (),
         Some(e) => {
@@ -125,13 +126,14 @@ fn test_buffer() {
     println!("---");
     println!("From a buffer");
 
-    let bfd = binutils::Bfd::empty();
+    let bfd = bfd::Bfd::empty();
 
 
     unsafe {
         // List available architectures
-        let list = binutils::bfd_arch_list();
-        let s = slice::from_raw_parts(list, 128);
+        let list = bfd::bfd_arch_list();
+        //let s = slice::from_raw_parts(list, 128);
+        let s = slice::from_raw_parts(list, 512);
         let mut i = 0;
         loop {
             if s[i] == 0 {
@@ -143,7 +145,7 @@ fn test_buffer() {
         //println!("---");
 
         // Retrieve the architecture value
-        let _arch_info = binutils::bfd_scan_arch(CString::new("i386:x86-64").unwrap().as_ptr());
+        let _arch_info = bfd::bfd_scan_arch(CString::new("i386:x86-64").unwrap().as_ptr());
         //println!("{:?}", arch_info);
         /* It can be used to retrieve the arch: arch_info->arch */
 
