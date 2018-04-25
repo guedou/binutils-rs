@@ -1,10 +1,11 @@
 [x] newer binutils version
 [x] disassemble a buffer passed from Rust
 [x] build binutils with cargo
-[ ] build libraries with all architectures using build.rs
+[x] build libraries with all architectures using build.rs
 [ ] refactor the crate with 'mod': Bfd, DisassembleInfo, ...
 [ ] binutils-rs
-[ ] find a way to avoid specifying `LD_LIBRAR_PATH`
+[x] find a way to avoid specifying `LD_LIBRARY_PATH`
+[ ] download binutils with curl or git
 
 [ ] make disassemble return an Instruction structure
 [ ] make disassemble return an interator

@@ -51,7 +51,7 @@ fn build_binutils(version: &str) {
     let filename = format!("{}.tar.gz", binutils_name);
 
     // Calls commands to build binutils
-    if path::Path::new(&format!("{}/built/", binutils_name)).exists() {
+    if path::Path::new("built/").exists() {
         return;
     }
 
@@ -73,16 +73,16 @@ fn build_binutils(version: &str) {
     // Calls commands to build binutils
     if path::Path::new(&binutils_name).exists() {
 
+        let crate_dir = env::current_dir().unwrap();
         change_dir(&binutils_name);
-        let current_dir = env::current_dir().unwrap();
-        let prefix_arg = format!("--prefix={}/built/", current_dir.display());
+        let prefix_arg = format!("--prefix={}/built/", crate_dir.display());
         execute_command(
             "./configure",
             vec![&prefix_arg, "--enable-shared", "--enable-targets=all"],
         );
         execute_command("make", vec!["-j8"]);
         execute_command("make", vec!["install"]);
-        execute_command("cp", vec!["opcodes/config.h", "built/include/"]);
+        execute_command("cp", vec!["opcodes/config.h", "../built/include/"]);
         change_dir("..");
     }
 }
@@ -96,12 +96,9 @@ fn main() {
 
     cc::Build::new()
         .file("src/utils.c")
-        .include(format!("binutils-{}/built/include/", version))
+        .include("built/include/")
         .compile("utils");
 
     // Locally compiled binutils libraries path
-    println!(
-        "cargo:rustc-link-search={}",
-        format!("binutils-{}/built/lib/", version)
-    );
+    println!("cargo:rustc-link-search=built/lib/");
 }
