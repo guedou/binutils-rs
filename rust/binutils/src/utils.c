@@ -105,13 +105,8 @@ void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int le
 
     asection section;
     info->section = &section;
-
-    /*
-    printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);
-    printf("%x\n", info->buffer[0]);
-    printf("%x\n", info->buffer[1]);
-    */
 }
+
 
 void show_buffer(struct disassemble_info *info) {
     printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);
@@ -120,4 +115,9 @@ void show_buffer(struct disassemble_info *info) {
     printf("%x\n", info->buffer[1]);
     printf("%x\n", info->buffer[2]);
     printf("%x\n", info->buffer[3]);
+}
+
+
+enum bfd_architecture get_arch(struct bfd_arch_info *arch_info) {
+  return arch_info->arch;
 }

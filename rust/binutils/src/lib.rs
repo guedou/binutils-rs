@@ -2,16 +2,17 @@
 // binutils - lib.rs
 
 pub mod bfd;
+pub mod mach;
 
 
 extern crate libc;
 
-use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
+use libc::{c_char, c_uchar, c_uint, c_ulong};
 
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::fmt;
 
-use bfd::{Bfd, BfdFormat, BfdRaw};
+use bfd::{Bfd, BfdRaw};
 
 
 #[derive(Debug)]
@@ -140,6 +141,7 @@ extern "C" {
         info: *const DisassembleInfoRaw,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     );
+    fn get_arch(arch_info: *const c_uint) -> u32;
 
     fn set_buffer(
         info: *const DisassembleInfoRaw,

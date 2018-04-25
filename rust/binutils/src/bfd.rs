@@ -7,7 +7,7 @@ use libc::{c_char, c_uint, c_ulong, uintptr_t};
 use std::ffi::{CStr, CString};
 use std;
 
-use super::{Error, Section, SectionRaw, tmp_buf_asm, tmp_buf_asm_ptr, DisassembleInfo};
+use super::{tmp_buf_asm, tmp_buf_asm_ptr, DisassembleInfo, Error, Section, SectionRaw};
 
 
 // Rust bfd types
@@ -103,6 +103,41 @@ impl Bfd {
     pub fn is_big_endian(&self) -> bool {
         unsafe { super::call_bfd_big_endian(self.bfd) }
     }
+
+    pub fn arch_list(&self) -> Vec<&str> {
+        let mut ret_vec = Vec::new();
+        let mut index = 0;
+        let mut stop = false;
+
+        let list = unsafe { bfd_arch_list() };
+        loop {
+            let slice = unsafe { std::slice::from_raw_parts(list.offset(index), 32) };
+            for i in 0..32 {
+                if slice[i] == 0 {
+                    stop = true;
+                    break;
+                }
+                let arch = unsafe { CStr::from_ptr(slice[i] as *const i8).to_str() };
+                match arch {
+                    Ok(s) => ret_vec.push(s),
+                    Err(_) => ret_vec.push("arch_list() - from_ptr() error !"),
+                }
+            }
+            if stop {
+                break;
+            } else {
+                index += 32;
+            }
+        }
+
+        ret_vec
+    }
+
+    pub fn scan_arch(&self, arch: &str) -> u32 {
+        let arch_cstring = CString::new(arch).unwrap();
+        let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
+        unsafe { super::get_arch(arch_info) }
+    }
 }
 
 fn bfd_convert_error() -> Error {
@@ -136,8 +171,8 @@ extern "C" {
 
     pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
 
-    pub fn bfd_arch_list() -> *const uintptr_t;
-    pub fn bfd_scan_arch(string: *const c_char) -> *const c_uint;
+    fn bfd_arch_list() -> *const uintptr_t;
+    fn bfd_scan_arch(string: *const c_char) -> *const c_uint;
     fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
     fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
 }

@@ -6,6 +6,7 @@
 [ ] binutils-rs
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [ ] download binutils with curl or git
+[ ] generate mach.rs with build.rs
 
 [ ] make disassemble return an Instruction structure
 [ ] make disassemble return an interator

@@ -1,14 +1,13 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - main.rs
 
-use std::ffi::{CStr, CString};
-use std::slice;
+use std::ffi::CString;
 
 extern crate libc;
 use libc::c_ulong;
 
 extern crate binutils;
-use binutils::{tmp_buf_asm, tmp_buf_asm_ptr, bfd};
+use binutils::{bfd, tmp_buf_asm, tmp_buf_asm_ptr, mach::bfd_mach};
 
 
 extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleInfoRaw) {
@@ -128,44 +127,23 @@ fn test_buffer() {
 
     let bfd = bfd::Bfd::empty();
 
+    let arch_name = "i386:x86-64";
+    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+        println!("Unsuported architecture ({})!", arch_name);
+        return;
+    }
 
-    unsafe {
-        // List available architectures
-        let list = bfd::bfd_arch_list();
-        //let s = slice::from_raw_parts(list, 128);
-        let s = slice::from_raw_parts(list, 512);
-        let mut i = 0;
-        loop {
-            if s[i] == 0 {
-                break;
-            }
-            //println!("{:?}", CStr::from_ptr(s[i] as *const i8).to_str());
-            i += 1;
-        }
-        //println!("---");
+    let bfd_arch_i386 = bfd.scan_arch(arch_name);
 
-        // Retrieve the architecture value
-        let _arch_info = bfd::bfd_scan_arch(CString::new("i386:x86-64").unwrap().as_ptr());
-        //println!("{:?}", arch_info);
-        /* It can be used to retrieve the arch: arch_info->arch */
-
-    };
-    //  grep bfd_mach bfd.h |grep define
-    //  TODO: build a compile time using build.rs ?
-    let _bfd_mach_mep = 1;
-    let bfd_mach_x86_64 = 1 << 3;
-
-    let bfd_arch_i386 = 9;
-
-    //println!("---");
     // Construct disassembler_ftype class
-    let disassemble = match bfd.raw_disassembler(bfd_arch_i386, false, bfd_mach_x86_64) {
-        Ok(d) => d,
-        Err(e) => {
-            println!("Error with raw_disassembler() - {}", e);
-            return;
-        }
-    };
+    let disassemble =
+        match bfd.raw_disassembler(bfd_arch_i386, false, bfd_mach::bfd_mach_x86_64 as u64) {
+            Ok(d) => d,
+            Err(e) => {
+                println!("Error with raw_disassembler() - {}", e);
+                return;
+            }
+        };
 
     // Create a disassemble_info structure
     let info = match binutils::DisassembleInfo::new() {
@@ -177,18 +155,14 @@ fn test_buffer() {
     };
 
     // Configure the disassemble_info structure
-    // Set the arch and mach members
-    // TODO: bfd_set_arch_mach
     let buffer = vec![0xc3, 0x90, 0x66, 0x90];
-    // TODO: info.set_arch_mach_from_bfd(bfd);
-    info.configure_buffer(bfd_arch_i386, bfd_mach_x86_64, buffer);
+    info.configure_buffer(bfd_arch_i386, bfd_mach::bfd_mach_x86_64 as u64, buffer);
     info.init();
 
     // Disassemble the buffer
     let mut pc = 0;
     for _i in 0..3 {
         let count = disassemble(pc, info);
-        //unsafe { binutils::show_buffer(info.raw()) };
         let instruction = match binutils::get_instruction() {
             Ok(i) => i,
             Err(e) => {
@@ -198,9 +172,6 @@ fn test_buffer() {
         };
         println!("0x{:x}  {}", pc, instruction);
         pc += count;
-        //println!("----");
-
-        // if pc > buffer.len() { break; }
     }
 
 }
