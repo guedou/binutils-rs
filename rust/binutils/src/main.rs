@@ -121,29 +121,27 @@ fn test_ls() {
 }
 
 
-fn test_buffer() {
+fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     println!("---");
-    println!("From a buffer");
+    println!("From a buffer - {}", arch_name);
 
     let bfd = bfd::Bfd::empty();
 
-    let arch_name = "i386:x86-64";
     if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
         return;
     }
 
-    let bfd_arch_i386 = bfd.scan_arch(arch_name);
+    let bfd_arch = bfd.scan_arch(arch_name); // TODO: also retrieve mach !
 
     // Construct disassembler_ftype class
-    let disassemble =
-        match bfd.raw_disassembler(bfd_arch_i386, false, bfd_mach::bfd_mach_x86_64 as u64) {
-            Ok(d) => d,
-            Err(e) => {
-                println!("Error with raw_disassembler() - {}", e);
-                return;
-            }
-        };
+    let disassemble = match bfd.raw_disassembler(bfd_arch, false, mach) {
+        Ok(d) => d,
+        Err(e) => {
+            println!("Error with raw_disassembler() - {}", e);
+            return;
+        }
+    };
 
     // Create a disassemble_info structure
     let info = match binutils::DisassembleInfo::new() {
@@ -155,8 +153,7 @@ fn test_buffer() {
     };
 
     // Configure the disassemble_info structure
-    let buffer = vec![0xc3, 0x90, 0x66, 0x90];
-    info.configure_buffer(bfd_arch_i386, bfd_mach::bfd_mach_x86_64 as u64, buffer);
+    info.configure_buffer(bfd_arch, mach, buffer);
     info.init();
 
     // Disassemble the buffer
@@ -173,10 +170,23 @@ fn test_buffer() {
         println!("0x{:x}  {}", pc, instruction);
         pc += count;
     }
-
 }
 
 fn main() {
+
     test_ls();
-    test_buffer();
+
+    test_buffer(
+        "i386:x86-64",
+        bfd_mach::bfd_mach_x86_64 as u64,
+        vec![0xc3, 0x90, 0x66, 0x90],
+    );
+
+    test_buffer(
+        "mep",
+        bfd_mach::bfd_mach_mep as u64,
+        vec![
+            0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
+        ],
+    );
 }

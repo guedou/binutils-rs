@@ -7,6 +7,7 @@
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [ ] download binutils with curl or git
 [ ] generate mach.rs with build.rs
+[ ] implement the DisassemleInfo destructor
 
 [ ] make disassemble return an Instruction structure
 [ ] make disassemble return an interator
@@ -17,5 +18,6 @@
 
 [ ] write examples
 [ ] write tests
+[ ] fuzz the disassembler
 
 [ ] use features to select architectures

@@ -11,6 +11,7 @@
 #include <dis-asm.h>
 
 // Silly macro that helps removing the unused warnings
+
 #define UNUSED_VARIABLE(id) id=id
 
 #define R_ASM_BUFSIZE 64
@@ -48,33 +49,12 @@ void configure_disassemble_info(struct disassemble_info *info, asection *section
 }
 
 
-// TODO: must be in Rust!
-bfd_byte buffer[] = { 0xc3, 0x90, 0x66, 0x90 };
-unsigned int buffer_len = 4;
-int buffer_ptr = 0;
-
-int pouet(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *info) {
-    UNUSED_VARIABLE(memaddr);
-    UNUSED_VARIABLE(info);
-
-    if (length > buffer_len)
-      return 1;
-
-    memcpy (myaddr, &buffer[buffer_ptr], length);
-    buffer_ptr += length;
-
-    return 0;
-}
-
 void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach) {
-//typedef int (*copy_buffer_ptr) (bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *dinfo);
-//void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach, copy_buffer_ptr copy_function) {
   
     init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer);
     info->arch = arch;
     info->mach = mach;
     info->read_memory_func = buffer_read_memory;
-    //info->read_memory_func = copy_function;
 }
 
 
@@ -103,8 +83,8 @@ void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int le
     info->buffer_length = length;
     info->buffer_vma = vma;
 
-    asection section;
-    info->section = &section;
+    asection *section = malloc(sizeof(asection)); // NOTE: must free it!
+    info->section = section;
 }
 
 
@@ -120,4 +100,20 @@ void show_buffer(struct disassemble_info *info) {
 
 enum bfd_architecture get_arch(struct bfd_arch_info *arch_info) {
   return arch_info->arch;
+}
+
+
+void mep_disassemble_info(struct disassemble_info* info) {
+  // From GDB
+  info->octets_per_byte = 1;
+  info->skip_zeroes = 256;
+  info->skip_zeroes_at_end = 0;
+  info->insn_type = dis_noninsn;
+  info->target = 0;
+  info->target2 = 0;
+  info->stop_vma = 0;
+  info->flags = DISASSEMBLE_DATA;
+
+  info->section->vma = 0;
+  info->section->flags = 0; // GV: important grep VLIW in dis-mep.c to know why
 }

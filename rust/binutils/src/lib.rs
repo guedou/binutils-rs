@@ -11,6 +11,7 @@ use libc::{c_char, c_uchar, c_uint, c_ulong};
 
 use std::ffi::CStr;
 use std::fmt;
+use std::mem;
 
 use bfd::{Bfd, BfdRaw};
 
@@ -64,7 +65,6 @@ pub enum DisassembleInfoRaw {}
 #[derive(Clone, Copy)]
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
-    //buffer: Vec<u8>,
 }
 
 impl DisassembleInfo {
@@ -88,12 +88,17 @@ impl DisassembleInfo {
 
     pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: Vec<u8>) {
         unsafe {
-            let new_buffer = buffer.to_vec(); // prevent the vector from being freed
-            let ptr = new_buffer.as_ptr();
-            let len = new_buffer.len();
+            //let new_buffer = buffer; //.to_vec(); // prevent the vector from being freed
+            let ptr = buffer.as_ptr();
+            let len = buffer.len();
             configure_disassemble_info_buffer(self.info, arch, mach);
             set_buffer(self.info, ptr, len as u32, 0);
+            // MeP
+            if arch == 60 {
+                mep_disassemble_info(self.info);
+            }
         }
+        mem::forget(buffer);
     }
 
     pub fn init(&self) {
@@ -106,8 +111,18 @@ impl DisassembleInfo {
     ) {
         unsafe { set_print_address_func(self.info, print_function) }
     }
-
 }
+
+/*
+impl Drop for DisassembleInfo {
+    fn drop(&mut self) {
+        println!("destructor called!");
+
+        // - free the malloc section
+        // - release the forget buffer
+    }
+}
+*/
 
 #[link(name = "opcodes-2.29.1")]
 extern "C" {
@@ -135,6 +150,7 @@ extern "C" {
         arch: c_uint,
         mach: c_ulong,
     );
+    fn mep_disassemble_info(info: *const DisassembleInfoRaw);
     fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
     pub fn get_section_size(section: *const SectionRaw) -> c_ulong;
     fn set_print_address_func(
