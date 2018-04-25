@@ -4,7 +4,7 @@
 use libc::c_ulong;
 
 extern "C" {
-    pub fn get_section_size(section: *const SectionRaw) -> c_ulong;
+    fn get_section_size(section: *const SectionRaw) -> c_ulong;
 }
 
 pub enum SectionRaw {}

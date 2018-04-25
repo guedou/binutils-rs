@@ -1,14 +1,48 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils libbfd bindings - bfd.rs
 
-
 use libc::{c_char, c_uint, c_ulong, uintptr_t};
 
 use std::ffi::{CStr, CString};
 use std;
 
-use super::{tmp_buf_asm, tmp_buf_asm_ptr, DisassembleInfo, Error, Section, SectionRaw};
+use super::Error;
+use opcodes::{disassembler, DisassembleInfo};
+use section::{Section, SectionRaw};
 
+#[link(name = "bfd-2.29.1")]
+extern "C" {
+    fn bfd_init();
+
+    pub fn bfd_get_error() -> c_uint;
+
+    pub fn bfd_errmsg(error_tag: c_uint) -> *const c_char;
+
+    pub fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const BfdRaw;
+
+    pub fn bfd_check_format(bfd: *const BfdRaw, bfd_format: BfdFormat) -> bool;
+
+    pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
+
+    fn bfd_arch_list() -> *const uintptr_t;
+
+    fn bfd_scan_arch(string: *const c_char) -> *const c_uint;
+
+    fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
+
+    fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
+
+    // Custom bindings
+    fn get_start_address(bfd: *const BfdRaw) -> c_ulong;
+
+    fn call_bfd_big_endian(bfd: *const BfdRaw) -> bool;
+
+    fn get_arch(arch_info: *const c_uint) -> u32;
+
+    pub static tmp_buf_asm: [u8; 64];
+
+    pub static mut tmp_buf_asm_ptr: *mut c_char;
+}
 
 // Rust bfd types
 // Note: - trick from https://doc.rust-lang.org/nomicon/ffi.html
@@ -21,7 +55,6 @@ pub struct Bfd {
 }
 
 impl Bfd {
-
     pub fn raw(&self) -> *const BfdRaw {
         self.bfd
     }
@@ -78,8 +111,7 @@ impl Bfd {
         big_endian: bool,
         mach: c_ulong,
     ) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
-
-        let disassemble = unsafe { super::disassembler(arch, big_endian, mach, self.bfd) };
+        let disassemble = unsafe { disassembler(arch, big_endian, mach, self.bfd) };
 
         if (disassemble as *const c_uint).is_null() {
             return Err(Error::CommonError(String::from(
@@ -97,11 +129,11 @@ impl Bfd {
     }
 
     pub fn get_start_address(&self) -> c_ulong {
-        unsafe { super::get_start_address(self.bfd) }
+        unsafe { get_start_address(self.bfd) }
     }
 
     pub fn is_big_endian(&self) -> bool {
-        unsafe { super::call_bfd_big_endian(self.bfd) }
+        unsafe { call_bfd_big_endian(self.bfd) }
     }
 
     pub fn arch_list(&self) -> Vec<&str> {
@@ -136,7 +168,7 @@ impl Bfd {
     pub fn scan_arch(&self, arch: &str) -> u32 {
         let arch_cstring = CString::new(arch).unwrap();
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
-        unsafe { super::get_arch(arch_info) }
+        unsafe { get_arch(arch_info) }
     }
 }
 
@@ -156,23 +188,4 @@ pub enum BfdFormat {
     bfd_archive,
     bfd_core,
     bfd_type_end,
-}
-
-#[link(name = "bfd-2.29.1")]
-extern "C" {
-    fn bfd_init();
-
-    pub fn bfd_get_error() -> c_uint;
-    pub fn bfd_errmsg(error_tag: c_uint) -> *const c_char;
-
-    pub fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const BfdRaw;
-
-    pub fn bfd_check_format(bfd: *const BfdRaw, bfd_format: BfdFormat) -> bool;
-
-    pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
-
-    fn bfd_arch_list() -> *const uintptr_t;
-    fn bfd_scan_arch(string: *const c_char) -> *const c_uint;
-    fn bfd_get_arch(bfd: *const BfdRaw) -> c_uint;
-    fn bfd_get_mach(bfd: *const BfdRaw) -> c_ulong;
 }

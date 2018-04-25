@@ -7,10 +7,12 @@ extern crate libc;
 use libc::c_ulong;
 
 extern crate binutils;
-use binutils::{bfd, tmp_buf_asm, tmp_buf_asm_ptr, mach::bfd_mach};
+use binutils::bfd;
+use binutils::instruction;
+use binutils::mach::bfd_mach;
+use binutils::opcodes;
 
-
-extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleInfoRaw) {
+extern "C" fn change_address(addr: c_ulong, _info: *const opcodes::DisassembleInfoRaw) {
     // Example of C callback that modifies an address used by an instruction
 
     //let fmt = "foo\0bar"; // TODO: use it for unit tests!
@@ -25,16 +27,14 @@ extern "C" fn change_address(addr: c_ulong, _info: *const binutils::DisassembleI
 
     // Copy the address to the buffer
     unsafe {
-
         // Compute the size of the offset from the base address
-        let addr_end = tmp_buf_asm_ptr as usize;
-        let addr_start = (&tmp_buf_asm as *const u8) as usize;
+        let addr_end = bfd::tmp_buf_asm_ptr as usize;
+        let addr_start = (&bfd::tmp_buf_asm as *const u8) as usize;
         let offset = addr_end - addr_start;
 
-        libc::strncat(tmp_buf_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
+        libc::strncat(bfd::tmp_buf_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
     }
 }
-
 
 fn test_ls() {
     println!("From an ELF");
@@ -75,7 +75,7 @@ fn test_ls() {
     };
 
     // Create a disassemble_info structure
-    let info = match binutils::DisassembleInfo::new() {
+    let info = match opcodes::DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);
@@ -92,7 +92,7 @@ fn test_ls() {
     let mut pc = bfd.get_start_address();
     loop {
         let count = disassemble(pc, &info);
-        let instruction = match binutils::get_instruction(pc, count) {
+        let instruction = match instruction::get_instruction(pc, count) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
@@ -110,7 +110,6 @@ fn test_ls() {
         break; // TODO: remove
     }
 }
-
 
 fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     println!("---");
@@ -135,7 +134,7 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     };
 
     // Create a disassemble_info structure
-    let info = match binutils::DisassembleInfo::new() {
+    let info = match opcodes::DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);
@@ -151,7 +150,7 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     let mut pc = 0;
     for _i in 0..3 {
         let count = disassemble(pc, &info);
-        let instruction = match binutils::get_instruction(pc, count) {
+        let instruction = match instruction::get_instruction(pc, count) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
@@ -161,14 +160,9 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
         println!("{}", instruction);
         pc += count;
     }
-
-    for instruction in disassemble_iter(pc, &info) {
-        println!("{}", instruction);
-    }
 }
 
 fn main() {
-
     test_ls();
 
     test_buffer(

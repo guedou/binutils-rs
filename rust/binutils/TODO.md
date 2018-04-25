@@ -2,7 +2,7 @@
 [x] disassemble a buffer passed from Rust
 [x] build binutils with cargo
 [x] build libraries with all architectures using build.rs
-[ ] refactor the crate with 'mod': Bfd, DisassembleInfo, ...
+[x] refactor the crate with 'mod': Bfd, DisassembleInfo, ...
 [ ] binutils-rs
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [ ] download binutils with curl or git
