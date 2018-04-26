@@ -9,7 +9,7 @@ use libc::c_ulong;
 extern crate binutils;
 use binutils::bfd;
 use binutils::instruction;
-use binutils::mach::bfd_mach;
+use binutils::mach;
 use binutils::opcodes;
 
 extern "C" fn change_address(addr: c_ulong, _info: *const opcodes::DisassembleInfoRaw) {
@@ -167,13 +167,13 @@ fn main() {
 
     test_buffer(
         "i386:x86-64",
-        bfd_mach::bfd_mach_x86_64 as u64,
+        mach::bfd_mach_x86_64,
         vec![0xc3, 0x90, 0x66, 0x90],
     );
 
     test_buffer(
         "mep",
-        bfd_mach::bfd_mach_mep as u64,
+        mach::bfd_mach_mep,
         vec![
             0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
         ],

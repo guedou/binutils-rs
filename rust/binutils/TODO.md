@@ -11,7 +11,6 @@
 [ ] rename tmp_buf_asm
 
 [x] make disassemble return an Instruction structure
-[ ] make disassemble return an iterator
 
 [ ] build a high level API to disassemble a section from an ELF and a buffer
     disassemble_elf_section!("file", ".text")
@@ -22,3 +21,5 @@
 [ ] fuzz the disassembler
 
 [ ] use features to select architectures
+
+[ ] make disassemble return an iterator
