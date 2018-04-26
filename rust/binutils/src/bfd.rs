@@ -6,7 +6,7 @@ use libc::{c_char, c_uint, c_ulong, uintptr_t};
 use std::ffi::{CStr, CString};
 use std;
 
-use super::Error;
+use Error;
 use opcodes::{disassembler, DisassembleInfo};
 use section::{Section, SectionRaw};
 
