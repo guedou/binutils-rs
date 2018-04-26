@@ -17,7 +17,7 @@ pub struct Instruction<'a> {
 
 impl<'a> fmt::Display for Instruction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "0x{:x} {}", self.offset, self.opcode)
+        write!(f, "0x{:X} {}", self.offset, self.opcode)
     }
 }
 
