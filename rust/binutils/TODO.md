@@ -5,10 +5,9 @@
 [x] refactor the crate with 'mod': Bfd, DisassembleInfo, ...
 [ ] binutils-rs
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
-[ ] download binutils with curl or git
-[ ] generate mach.rs with build.rs
 [x] implement the DisassemleInfo destructor
-[ ] rename tmp_buf_asm
+[ ] rename tmp_buf_asm: the ptr is likely useless!
+[ ] clean and comment functions
 
 [x] make disassemble return an Instruction structure
 
@@ -20,6 +19,9 @@
 [ ] write tests
 [ ] fuzz the disassembler
 
+[ ] use info->stop_vma ?
 [ ] use features to select architectures
 
 [ ] make disassemble return an iterator
+[ ] generate mach.rs with build.rs
+[ ] download binutils with curl or git

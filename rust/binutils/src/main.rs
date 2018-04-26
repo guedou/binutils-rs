@@ -9,7 +9,6 @@ use libc::c_ulong;
 extern crate binutils;
 use binutils::bfd;
 use binutils::instruction;
-use binutils::mach;
 use binutils::opcodes;
 
 extern "C" fn change_address(addr: c_ulong, _info: *const opcodes::DisassembleInfoRaw) {
@@ -36,7 +35,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const opcodes::DisassembleIn
     }
 }
 
-fn test_ls() {
+fn test_ls(max_instructions: Option<u8>) {
     println!("From an ELF");
 
     let bfd = match bfd::Bfd::openr("/bin/ls", "elf64-x86-64") {
@@ -90,9 +89,10 @@ fn test_ls() {
 
     // Disassemble the binary
     let mut pc = bfd.get_start_address();
+    let mut counter = 0;
     loop {
-        let count = disassemble(pc, &info);
-        let instruction = match instruction::get_instruction(pc, count) {
+        let length = disassemble(pc, &info);
+        let instruction = match instruction::get_instruction(pc, length) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
@@ -100,20 +100,24 @@ fn test_ls() {
             }
         };
 
-        println!("0x{:x}  {}", pc, instruction);
+        println!("{}", instruction);
 
-        pc += count;
+        pc += length;
+        counter += 1;
 
-        if !(count > 0 && pc <= section.get_size()) {
+        if !(length > 0 && pc <= section.get_size()) {
             break;
         }
-        break; // TODO: remove
+
+        if !max_instructions.is_none() && max_instructions.unwrap() <= counter {
+            break;
+        }
     }
 }
 
-fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
+fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
-    println!("From a buffer - {}", arch_name);
+    println!("From a buffer (full API) - {}", arch_name);
 
     let bfd = bfd::Bfd::empty();
 
@@ -122,10 +126,11 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
         return;
     }
 
-    let bfd_arch = bfd.scan_arch(arch_name); // TODO: also retrieve mach !
+    // Retrive bfd_arch and bfd_mach from the architecture name
+    let bfd_arch_mach = bfd.scan_arch(arch_name);
 
     // Construct disassembler_ftype class
-    let disassemble = match bfd.raw_disassembler(bfd_arch, false, mach) {
+    let disassemble = match bfd.raw_disassembler(bfd_arch_mach.0, false, bfd_arch_mach.1) {
         Ok(d) => d,
         Err(e) => {
             println!("Error with raw_disassembler() - {}", e);
@@ -143,14 +148,14 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
     };
 
     // Configure the disassemble_info structure
-    info.configure_buffer(bfd_arch, mach, &buffer);
+    info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset);
     info.init();
 
     // Disassemble the buffer
-    let mut pc = 0;
+    let mut pc = offset;
     for _i in 0..3 {
-        let count = disassemble(pc, &info);
-        let instruction = match instruction::get_instruction(pc, count) {
+        let length = disassemble(pc, &info);
+        let instruction = match instruction::get_instruction(pc, length) {
             Ok(i) => i,
             Err(e) => {
                 println!("{}", e);
@@ -158,24 +163,75 @@ fn test_buffer(arch_name: &str, mach: u64, buffer: Vec<u8>) {
             }
         };
         println!("{}", instruction);
-        pc += count;
+        pc += length;
+    }
+}
+
+fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
+    println!("---");
+    println!("From a buffer (simplified API) - {}", arch_name);
+
+    let bfd = bfd::Bfd::empty();
+
+    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+        println!("Unsuported architecture ({})!", arch_name);
+        return;
+    }
+
+    // Retrive bfd_arch and bfd_mach from the architecture name
+    let bfd_arch_mach = bfd.scan_arch(arch_name);
+
+    // Construct a disassembler_ftype class aka the disassembly function
+    let disassemble_fn = match bfd.raw_disassembler(bfd_arch_mach.0, false, bfd_arch_mach.1) {
+        Ok(d) => d,
+        Err(e) => {
+            println!("Error with raw_disassembler() - {}", e);
+            return;
+        }
+    };
+
+    // Create a disassemble_info structure
+    let mut info = match opcodes::DisassembleInfo::new() {
+        Ok(i) => i,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    // Configure the disassemble_info structure
+    // TODO: add a high-level method ?
+    //info.configure_buffer(&buffer, bfd, 0xC00000);
+    info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset); // TODO: use bfd here!
+    info.configure_disassembler(disassemble_fn); // TODO: use bfd here!
+    info.init();
+
+    // Disassemble the buffer
+    loop {
+        let instruction = match info.disassemble() {
+            None => break,
+            Some(i) => match i {
+                Ok(i) => i,
+                Err(e) => {
+                    println!("{}", e);
+                    break;
+                }
+            },
+        };
+        println!("{}", instruction);
     }
 }
 
 fn main() {
-    test_ls();
+    test_ls(Some(3));
 
-    test_buffer(
-        "i386:x86-64",
-        mach::bfd_mach_x86_64,
-        vec![0xc3, 0x90, 0x66, 0x90],
-    );
+    test_buffer_full("i386:x86-64", vec![0xc3, 0x90, 0x66, 0x90], 0xA00);
 
-    test_buffer(
+    test_buffer_simplified(
         "mep",
-        mach::bfd_mach_mep,
         vec![
             0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
         ],
+        0xC00000,
     );
 }

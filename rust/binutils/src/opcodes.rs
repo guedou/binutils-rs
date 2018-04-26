@@ -4,6 +4,7 @@
 use libc::{c_uchar, c_uint, c_ulong};
 
 use bfd::{Bfd, BfdRaw};
+use instruction::{get_instruction, Instruction};
 use section::{Section, SectionRaw};
 use super::Error;
 
@@ -48,12 +49,16 @@ extern "C" {
     fn mep_disassemble_info(info: *const DisassembleInfoRaw);
 
     fn free_disassemble_info(info: *const DisassembleInfoRaw);
+
+    fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
 }
 
 pub enum DisassembleInfoRaw {}
 
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
+    disassembler: Option<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>>,
+    pc: u64,
 }
 
 impl DisassembleInfo {
@@ -64,7 +69,11 @@ impl DisassembleInfo {
                 "Error while getting disassemble_info!",
             )));
         }
-        Ok(DisassembleInfo { info: new_info })
+        Ok(DisassembleInfo {
+            info: new_info,
+            disassembler: None,
+            pc: 0,
+        })
     }
 
     pub fn raw(&self) -> *const DisassembleInfoRaw {
@@ -75,13 +84,12 @@ impl DisassembleInfo {
         unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
-    pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: &Vec<u8>) {
+    pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: &Vec<u8>, offset: u64) {
         unsafe {
-            //let new_buffer = buffer; //.to_vec(); // prevent the vector from being freed
             let ptr = buffer.as_ptr();
             let len = buffer.len();
             configure_disassemble_info_buffer(self.info, arch, mach);
-            set_buffer(self.info, ptr, len as u32, 0);
+            set_buffer(self.info, ptr, len as u32, offset);
             // MeP
             if arch == 60 {
                 mep_disassemble_info(self.info);
@@ -98,6 +106,34 @@ impl DisassembleInfo {
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     ) {
         unsafe { set_print_address_func(self.info, print_function) }
+    }
+
+    pub fn configure_disassembler(
+        &mut self,
+        disassembler: Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>,
+    ) {
+        self.pc = unsafe { get_disassemble_info_section_vma(self.info) };
+        self.disassembler = Some(disassembler)
+    }
+
+    pub fn disassemble<'a>(&mut self) -> Option<Result<Instruction<'a>, Error>> {
+        let f = match self.disassembler {
+            Some(ref f) => f,
+            None => {
+                return Some(Err(Error::CommonError(
+                    "disassembler not configured!".to_string(),
+                )))
+            }
+        };
+
+        let count = f(self.pc, self);
+        //TODO: use an unsigned integer !
+        if count == 4294967295 {
+            return None;
+        }
+        let instruction = get_instruction(self.pc, count);
+        self.pc += count;
+        Some(instruction)
     }
 }
 

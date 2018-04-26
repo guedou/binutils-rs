@@ -83,8 +83,9 @@ void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int le
     info->buffer_length = length;
     info->buffer_vma = vma;
 
-    asection *section = malloc(sizeof(asection)); // NOTE: must free it!
+    asection *section = malloc(sizeof(asection));
     info->section = section;
+    info->section->vma = vma;
 }
 
 void free_disassemble_info(struct disassemble_info *info) {
@@ -107,6 +108,10 @@ enum bfd_architecture get_arch(struct bfd_arch_info *arch_info) {
   return arch_info->arch;
 }
 
+unsigned long get_mach(struct bfd_arch_info *arch_info) {
+  return arch_info->mach;
+}
+
 
 void mep_disassemble_info(struct disassemble_info* info) {
   // From GDB
@@ -119,6 +124,10 @@ void mep_disassemble_info(struct disassemble_info* info) {
   info->stop_vma = 0;
   info->flags = DISASSEMBLE_DATA;
 
-  info->section->vma = 0;
   info->section->flags = 0; // GV: important grep VLIW in dis-mep.c to know why
+}
+
+
+unsigned long get_disassemble_info_section_vma(struct disassemble_info *info) {
+  return info->section->vma;
 }

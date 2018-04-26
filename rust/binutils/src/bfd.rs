@@ -39,6 +39,8 @@ extern "C" {
 
     fn get_arch(arch_info: *const c_uint) -> u32;
 
+    fn get_mach(arch_info: *const c_uint) -> u64;
+
     pub static tmp_buf_asm: [u8; 64];
 
     pub static mut tmp_buf_asm_ptr: *mut c_char;
@@ -165,10 +167,10 @@ impl Bfd {
         ret_vec
     }
 
-    pub fn scan_arch(&self, arch: &str) -> u32 {
+    pub fn scan_arch(&self, arch: &str) -> (u32, u64) {
         let arch_cstring = CString::new(arch).unwrap();
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
-        unsafe { get_arch(arch_info) }
+        unsafe { (get_arch(arch_info), get_mach(arch_info)) }
     }
 }
 
