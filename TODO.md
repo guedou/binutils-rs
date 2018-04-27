@@ -1,3 +1,5 @@
+## Rust
+
 [x] newer binutils version
 [x] disassemble a buffer passed from Rust
 [x] build binutils with cargo
@@ -26,3 +28,15 @@
 [x] make disassemble return an iterator
 [ ] generate mach.rs with build.rs
 [ ] download binutils with curl or git
+
+## Examples
+
+[ ] autobuild binutils and libopcodes
+[ ] lint C examples
+[ ] clean them
+[ ] get instruction types from binutils ?
+[ ] r2lo\_mep: ad and A\_
+    [ ] change the instructions style (mov $r1, 2 -> MOV R1, 2) ; intel vs att ?
+[ ] Python bindings to libopcodes.so
+    [ ] disassembling
+    [ ] assembling
