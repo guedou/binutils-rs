@@ -7,10 +7,9 @@ use std::process;
 
 extern crate cc;
 
-
 fn execute_command(command: &str, arguments: Vec<&str>) {
     // Execute a command, and panic on any error
-     
+
     let status = process::Command::new(command).args(arguments).status();
     match status {
         Ok(exit) => match exit.success() {
@@ -30,7 +29,6 @@ fn execute_command(command: &str, arguments: Vec<&str>) {
     };
 }
 
-
 fn change_dir(directory: &str) {
     // Go to another directory, and panic on error
 
@@ -42,7 +40,6 @@ fn change_dir(directory: &str) {
         );
     }
 }
-
 
 fn build_binutils(version: &str) {
     // Build binutils
@@ -72,7 +69,6 @@ fn build_binutils(version: &str) {
 
     // Calls commands to build binutils
     if path::Path::new(&binutils_name).exists() {
-
         let crate_dir = env::current_dir().unwrap();
         change_dir(&binutils_name);
         let prefix_arg = format!("--prefix={}/built/", crate_dir.display());
@@ -87,9 +83,7 @@ fn build_binutils(version: &str) {
     }
 }
 
-
 fn main() {
-
     let version = "2.29.1";
 
     build_binutils(version);

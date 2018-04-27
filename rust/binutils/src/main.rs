@@ -9,9 +9,10 @@ use libc::c_ulong;
 extern crate binutils;
 use binutils::bfd;
 use binutils::instruction;
-use binutils::opcodes;
+use binutils::instruction::Instruction;
+use binutils::opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
-extern "C" fn change_address(addr: c_ulong, _info: *const opcodes::DisassembleInfoRaw) {
+extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     // Example of C callback that modifies an address used by an instruction
 
     //let fmt = "foo\0bar"; // TODO: use it for unit tests!
@@ -74,7 +75,7 @@ fn test_ls(max_instructions: Option<u8>) {
     };
 
     // Create a disassemble_info structure
-    let info = match opcodes::DisassembleInfo::new() {
+    let info = match DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);
@@ -119,7 +120,7 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
     println!("From a buffer (full API) - {}", arch_name);
 
-    let bfd = bfd::Bfd::empty();
+    let mut bfd = bfd::Bfd::empty();
 
     if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
@@ -139,7 +140,7 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Create a disassemble_info structure
-    let info = match opcodes::DisassembleInfo::new() {
+    let info = match DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);
@@ -171,27 +172,18 @@ fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
     println!("From a buffer (simplified API) - {}", arch_name);
 
-    let bfd = bfd::Bfd::empty();
+    let mut bfd = bfd::Bfd::empty();
 
     if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
         return;
     }
 
-    // Retrive bfd_arch and bfd_mach from the architecture name
-    let bfd_arch_mach = bfd.scan_arch(arch_name);
-
-    // Construct a disassembler_ftype class aka the disassembly function
-    let disassemble_fn = match bfd.raw_disassembler(bfd_arch_mach.0, false, bfd_arch_mach.1) {
-        Ok(d) => d,
-        Err(e) => {
-            println!("Error with raw_disassembler() - {}", e);
-            return;
-        }
-    };
+    // Set bfd_arch and bfd_mach from the architecture name
+    bfd.scan_arch(arch_name);
 
     // Create a disassemble_info structure
-    let mut info = match opcodes::DisassembleInfo::new() {
+    let mut info = match DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);
@@ -200,11 +192,7 @@ fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Configure the disassemble_info structure
-    // TODO: add a high-level method ?
-    //info.configure_buffer(&buffer, bfd, 0xC00000);
-    info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset); // TODO: use bfd here!
-    info.configure_disassembler(disassemble_fn); // TODO: use bfd here!
-    info.init();
+    info.init_buffer(&buffer, bfd, offset);
 
     // Disassemble the buffer
     loop {
@@ -222,12 +210,49 @@ fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 }
 
+fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
+    println!("---");
+    println!("From a buffer (iter) - {}", arch_name);
+
+    let mut bfd = bfd::Bfd::empty();
+
+    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+        println!("Unsuported architecture ({})!", arch_name);
+        return;
+    }
+
+    // Set bfd_arch and bfd_mach from the architecture name
+    bfd.scan_arch(arch_name);
+
+    // Create a disassemble_info structure
+    let mut info = match DisassembleInfo::new() {
+        Ok(i) => i,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    // Disassemble the buffer using an iterator
+    for instruction in Instruction::from_buffer(&mut info, bfd, &buffer, offset) {
+        println!("{}", instruction);
+    }
+}
+
 fn main() {
     test_ls(Some(3));
 
     test_buffer_full("i386:x86-64", vec![0xc3, 0x90, 0x66, 0x90], 0xA00);
 
     test_buffer_simplified(
+        "mep",
+        vec![
+            0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
+        ],
+        0xC00000,
+    );
+
+    test_buffer_iter(
         "mep",
         vec![
             0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00

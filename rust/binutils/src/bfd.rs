@@ -54,6 +54,7 @@ pub enum BfdRaw {}
 #[derive(Clone, Copy)]
 pub struct Bfd {
     bfd: *const BfdRaw,
+    pub arch_mach: (u32, u64),
 }
 
 impl Bfd {
@@ -66,6 +67,7 @@ impl Bfd {
         unsafe { bfd_init() };
         Bfd {
             bfd: std::ptr::null(),
+            arch_mach: (0, 0),
         }
     }
 
@@ -80,7 +82,10 @@ impl Bfd {
         if bfd_file.is_null() {
             return Err(bfd_convert_error());
         };
-        Ok(Bfd { bfd: bfd_file })
+        Ok(Bfd {
+            bfd: bfd_file,
+            arch_mach: (0, 0),
+        })
     }
 
     pub fn check_format(&self, format: BfdFormat) -> Option<Error> {
@@ -167,10 +172,11 @@ impl Bfd {
         ret_vec
     }
 
-    pub fn scan_arch(&self, arch: &str) -> (u32, u64) {
+    pub fn scan_arch(&mut self, arch: &str) -> (u32, u64) {
         let arch_cstring = CString::new(arch).unwrap();
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
-        unsafe { (get_arch(arch_info), get_mach(arch_info)) }
+        self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
+        self.arch_mach
     }
 }
 

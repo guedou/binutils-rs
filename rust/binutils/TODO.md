@@ -8,6 +8,7 @@
 [x] implement the DisassemleInfo destructor
 [ ] rename tmp_buf_asm: the ptr is likely useless!
 [ ] clean and comment functions
+[ ] rename scan_arch to set_arch_mach
 
 [x] make disassemble return an Instruction structure
 
@@ -22,6 +23,6 @@
 [ ] use info->stop_vma ?
 [ ] use features to select architectures
 
-[ ] make disassemble return an iterator
+[x] make disassemble return an iterator
 [ ] generate mach.rs with build.rs
 [ ] download binutils with curl or git

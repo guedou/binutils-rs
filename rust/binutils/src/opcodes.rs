@@ -84,6 +84,19 @@ impl DisassembleInfo {
         unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
+    pub fn init_buffer(&mut self, buffer: &Vec<u8>, bfd: Bfd, offset: u64) {
+        let disassemble_fn = match bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1) {
+            Ok(d) => d,
+            Err(e) => {
+                println!("Error with raw_disassembler() - {}", e);
+                return;
+            }
+        };
+        self.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, buffer, offset);
+        self.configure_disassembler(disassemble_fn);
+        self.init();
+    }
+
     pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: &Vec<u8>, offset: u64) {
         unsafe {
             let ptr = buffer.as_ptr();

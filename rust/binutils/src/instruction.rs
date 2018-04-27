@@ -5,7 +5,8 @@ use std::ffi::CStr;
 use std::fmt;
 
 use Error;
-use bfd::tmp_buf_asm;
+use bfd::{tmp_buf_asm, Bfd};
+use opcodes::DisassembleInfo;
 
 #[allow(dead_code)]
 pub struct Instruction<'a> {
@@ -13,6 +14,8 @@ pub struct Instruction<'a> {
     pub offset: u64,
     pub opcode: &'a str,
     //bytes: Vec<u8>,
+    info: Option<&'a mut DisassembleInfo>,
+    pub error: Option<Error>,
 }
 
 impl<'a> fmt::Display for Instruction<'a> {
@@ -45,5 +48,40 @@ pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, 
         offset: offset,
         length: length,
         opcode: get_opcode().unwrap(),
+        info: None,
+        error: None,
     })
+}
+
+impl<'a> Instruction<'a> {
+    pub fn from_buffer(
+        info: &'a mut DisassembleInfo,
+        bfd: Bfd,
+        buffer: &Vec<u8>,
+        offset: u64,
+    ) -> Instruction<'a> {
+        info.init_buffer(buffer, bfd, offset);
+        let mut instruction = info.disassemble().unwrap().unwrap(); // TODO: fix it!
+        instruction.info = Some(info);
+        instruction
+    }
+}
+
+impl<'a> Iterator for Instruction<'a> {
+    type Item = Instruction<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let info = self.info.take().unwrap(); // Remove info for the structure
+        let i = info.disassemble();
+        match i {
+            Some(r) => match r {
+                Ok(i) => {
+                    self.info = Some(info);
+                    Some(i)
+                }
+                Err(_) => None,
+            },
+            None => None,
+        }
+    }
 }
