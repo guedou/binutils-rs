@@ -5,12 +5,14 @@
 [x] build binutils with cargo
 [x] build libraries with all architectures using build.rs
 [x] refactor the crate with 'mod': Bfd, DisassembleInfo, ...
-[ ] binutils-rs
+[x] binutils-rs
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [x] implement the DisassemleInfo destructor
 [ ] rename tmp_buf_asm: the ptr is likely useless!
 [ ] clean and comment functions
 [ ] rename scan_arch to set_arch_mach
+[ ] licence MIT
+[ ] try to use va crate!
 
 [x] make disassemble return an Instruction structure
 
@@ -31,7 +33,6 @@
 
 ## Examples
 
-[ ] autobuild binutils and libopcodes
 [ ] lint C examples
 [ ] clean them
 [ ] get instruction types from binutils ?
