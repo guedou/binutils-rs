@@ -172,7 +172,7 @@ impl Bfd {
         ret_vec
     }
 
-    pub fn scan_arch(&mut self, arch: &str) -> (u32, u64) {
+    pub fn set_arch_mach(&mut self, arch: &str) -> (u32, u64) {
         let arch_cstring = CString::new(arch).unwrap();
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };

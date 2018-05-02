@@ -9,9 +9,9 @@
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [x] implement the DisassemleInfo destructor
 [x] rename tmp_buf_asm: the ptr is likely useless!
-[ ] rename scan_arch to set_arch_mach
+[x] rename scan_arch to set_arch_mach
 [ ] clean and comment functions
-[ ] licence MIT
+[x] licence MIT
 [ ] try to use va crate!
 [ ] move main.rs to examples/
 [x] download binutils-2.29.1.tar.gz from build.rs!
@@ -25,6 +25,7 @@
 [ ] write examples
 [ ] write tests
 [ ] fuzz the disassembler
+[ ] generate documentation from comments?
 
 [ ] use info->stop_vma ?
 [ ] use features to select architectures
@@ -32,14 +33,3 @@
 [x] make disassemble return an iterator
 [ ] generate mach.rs with build.rs
 [ ] download binutils with curl or git
-
-## Examples
-
-[x] lint C examples
-[x] clean them
-[ ] get instruction types from binutils ?
-[ ] r2lo\_mep: ad and A\_
-    [ ] change the instructions style (mov $r1, 2 -> MOV R1, 2) ; intel vs att ?
-[ ] Python bindings to libopcodes.so
-    [ ] disassembling
-    [ ] assembling
