@@ -13,6 +13,7 @@
 [ ] rename scan_arch to set_arch_mach
 [ ] licence MIT
 [ ] try to use va crate!
+[ ] move main.rs to examples/
 
 [x] make disassemble return an Instruction structure
 
@@ -33,8 +34,8 @@
 
 ## Examples
 
-[ ] lint C examples
-[ ] clean them
+[x] lint C examples
+[x] clean them
 [ ] get instruction types from binutils ?
 [ ] r2lo\_mep: ad and A\_
     [ ] change the instructions style (mov $r1, 2 -> MOV R1, 2) ; intel vs att ?
