@@ -1,16 +1,22 @@
-#include <opcodes/config.h>
+// Guillaume Valadon <guillaume@valadon.net>
 
-#include <string.h>
+#include <config.h>
+
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
-#include <bfd/bfd.h>
-#include <include/dis-asm.h>
+#include <bfd.h>
+#include <dis-asm.h>
 
 bfd_byte buffer[] = { 0xc3, 0x90, 0x66, 0x90 };
 int buffer_len = 4;
 int buffer_ptr = 0;
 
-int pouet(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *dinfo) {
+int copy_buffer(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length,
+		struct disassemble_info *dinfo) {
+  // Copy our buffer to binutils
+  
   if (length > buffer_len)
     return 1;
 
@@ -20,39 +26,38 @@ int pouet(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disasse
   return 0;
 }
 
-int main( int argc, char ** argv )
-{
+int main(int argc, char ** argv) {
   disassembler_ftype      disassemble;
   struct disassemble_info info;
-  unsigned long count, pc;
+  unsigned long           count, pc;
 
   /* Construct a specific disassembler */
   enum bfd_architecture arch = bfd_arch_i386;
   bfd_boolean big_endian = FALSE;
   unsigned long mach = bfd_mach_x86_64;
   disassemble = disassembler (arch, big_endian, mach, NULL);
-  if ( disassemble == NULL )
-  {
-    printf( "Error creating disassembler\n" );
-    return -1;
+  if( disassemble == NULL) {
+    printf ("Error creating disassembler\n");
+    return EXIT_FAILURE;
   }
 
   /* Construct and configure the disassembler_info structure */
-  init_disassemble_info ( &info, stdout, (fprintf_ftype)fprintf );
+  init_disassemble_info (&info, stdout, (fprintf_ftype) fprintf);
   info.arch = arch;
   info.mach = mach;
-  info.read_memory_func = pouet;
+  info.read_memory_func = copy_buffer;
 
-  disassemble_init_for_target ( &info );
+  disassemble_init_for_target (&info);
 
-  /* Diassemble a single instruction */
+  /* Disassemble instruction from the buffer */
   pc = 0;
   for (int i=0; i < 3; i++) {
-    printf("Address: 0x%x\n", pc );
-    count = disassemble( pc, &info );
+    printf ("Address: 0x%x\n", pc);
+    count = disassemble (pc, &info);
     pc += count;
-    printf("\nType: 0x%x\n", info.insn_type );
-    printf("====\n");
+    printf ("\nType: 0x%x\n", info.insn_type);
+    printf ("====\n");
   }
-  return 0;
+
+  return EXIT_SUCCESS;
 }
