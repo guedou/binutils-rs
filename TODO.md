@@ -14,6 +14,7 @@
 [ ] licence MIT
 [ ] try to use va crate!
 [ ] move main.rs to examples/
+[x] download binutils-2.29.1.tar.gz from build.rs!
 
 [x] make disassemble return an Instruction structure
 

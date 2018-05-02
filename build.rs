@@ -52,13 +52,22 @@ fn build_binutils(version: &str) {
         return;
     }
 
-    // Check if the tarball exist
+    // Check if the tarball exists
+    if !path::Path::new(&filename).exists() {
+        execute_command("curl",
+                        vec![format!("https://ftp.gnu.org/gnu/binutils/{}",
+                                     filename).as_str(),
+                             "-O",
+                            ]
+                       );
+    }
+
+    // Check if the tarball exists after calling curl
     if !path::Path::new(&filename).exists() {
         panic!(
             "\n\n  \
-             Please download {} !\n    \
-             ex: curl https://ftp.gnu.org/gnu/binutils/{} -O\n\n",
-            filename, filename
+             Can't download {} using curl!\n\n",
+            filename,
         );
     }
 
