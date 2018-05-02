@@ -41,9 +41,9 @@ extern "C" {
 
     fn get_mach(arch_info: *const c_uint) -> u64;
 
-    pub static tmp_buf_asm: [u8; 64];
+    pub static buffer_asm: [u8; 64];
 
-    pub static mut tmp_buf_asm_ptr: *mut c_char;
+    pub static mut buffer_asm_ptr: *mut c_char;
 }
 
 // Rust bfd types
@@ -128,7 +128,7 @@ impl Bfd {
 
         let disassemble_closure = move |p: c_ulong, di: &DisassembleInfo| -> c_ulong {
             unsafe {
-                tmp_buf_asm_ptr = tmp_buf_asm.as_ptr() as *mut c_char; // TODO: not always useful!
+                buffer_asm_ptr = buffer_asm.as_ptr() as *mut c_char; // TODO: not always useful!
             };
             disassemble(p, di.raw())
         };

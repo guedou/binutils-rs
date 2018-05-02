@@ -8,9 +8,9 @@
 [x] binutils-rs
 [x] find a way to avoid specifying `LD_LIBRARY_PATH`
 [x] implement the DisassemleInfo destructor
-[ ] rename tmp_buf_asm: the ptr is likely useless!
-[ ] clean and comment functions
+[x] rename tmp_buf_asm: the ptr is likely useless!
 [ ] rename scan_arch to set_arch_mach
+[ ] clean and comment functions
 [ ] licence MIT
 [ ] try to use va crate!
 [ ] move main.rs to examples/

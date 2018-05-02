@@ -28,11 +28,11 @@ extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     // Copy the address to the buffer
     unsafe {
         // Compute the size of the offset from the base address
-        let addr_end = bfd::tmp_buf_asm_ptr as usize;
-        let addr_start = (&bfd::tmp_buf_asm as *const u8) as usize;
+        let addr_end = bfd::buffer_asm_ptr as usize;
+        let addr_start = (&bfd::buffer_asm as *const u8) as usize;
         let offset = addr_end - addr_start;
 
-        libc::strncat(bfd::tmp_buf_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
+        libc::strncat(bfd::buffer_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
     }
 }
 

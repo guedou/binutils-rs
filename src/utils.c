@@ -15,8 +15,8 @@
 #define UNUSED_VARIABLE(id) id=id
 
 #define R_ASM_BUFSIZE 64
-char tmp_buf_asm[R_ASM_BUFSIZE];
-char *tmp_buf_asm_ptr = tmp_buf_asm;
+char buffer_asm[R_ASM_BUFSIZE];
+char *buffer_asm_ptr = buffer_asm;
 void copy_buffer(void * useless, const char* format, ...) {
     UNUSED_VARIABLE(useless);
 
@@ -24,8 +24,8 @@ void copy_buffer(void * useless, const char* format, ...) {
     va_list ap;
 
     va_start(ap, format);
-    vsnprintf(tmp_buf_asm_ptr, R_ASM_BUFSIZE-(tmp_buf_asm_ptr-tmp_buf_asm), format, ap);
-    tmp_buf_asm_ptr = tmp_buf_asm + strlen(tmp_buf_asm);
+    vsnprintf(buffer_asm_ptr, R_ASM_BUFSIZE-(buffer_asm_ptr-buffer_asm), format, ap);
+    buffer_asm_ptr = buffer_asm + strlen(buffer_asm);
     va_end(ap);
 }
 
