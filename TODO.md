@@ -12,8 +12,10 @@
 [x] rename scan_arch to set_arch_mach
 [ ] clean and comment functions
 [x] licence MIT
-[ ] try to use va crate!
+[ ] try to use the va crate!
 [ ] move main.rs to examples/
+[ ] check binutils tarball checksum
+[x] build to to OUT_DIR & use static libraries !
 [x] download binutils-2.29.1.tar.gz from build.rs!
 
 [x] make disassemble return an Instruction structure
@@ -28,8 +30,8 @@
 [ ] generate documentation from comments?
 
 [ ] use info->stop_vma ?
-[ ] use features to select architectures
-
 [x] make disassemble return an iterator
+
+## Wish list / Roadmap
+[ ] use features to select architectures
 [ ] generate mach.rs with build.rs
-[ ] download binutils with curl or git

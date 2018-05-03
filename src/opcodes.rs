@@ -8,7 +8,6 @@ use instruction::{get_instruction, Instruction};
 use section::{Section, SectionRaw};
 use super::Error;
 
-#[link(name = "opcodes-2.29.1")]
 extern "C" {
     pub fn disassembler(
         arc: c_uint,

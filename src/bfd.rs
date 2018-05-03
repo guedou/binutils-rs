@@ -10,7 +10,6 @@ use Error;
 use opcodes::{disassembler, DisassembleInfo};
 use section::{Section, SectionRaw};
 
-#[link(name = "bfd-2.29.1")]
 extern "C" {
     fn bfd_init();
 

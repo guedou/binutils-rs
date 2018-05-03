@@ -41,14 +41,15 @@ fn change_dir(directory: &str) {
     }
 }
 
-fn build_binutils(version: &str) {
+fn build_binutils(version: &str, output_directory: &str) {
     // Build binutils
 
     let binutils_name = format!("binutils-{}", version);
     let filename = format!("{}.tar.gz", binutils_name);
+    let directory_filename = format!("{}/{}", output_directory, filename);
 
-    // Calls commands to build binutils
-    if path::Path::new("built/").exists() {
+    // Check if binutils is built
+    if path::Path::new(&format!("{}/built/", output_directory)).exists() {
         return;
     }
 
@@ -57,51 +58,78 @@ fn build_binutils(version: &str) {
         execute_command("curl",
                         vec![format!("https://ftp.gnu.org/gnu/binutils/{}",
                                      filename).as_str(),
-                             "-O",
+                             "--output",
+                             &directory_filename,
                             ]
                        );
     }
 
+    // GV: verify checksum
+
     // Check if the tarball exists after calling curl
-    if !path::Path::new(&filename).exists() {
+    if !path::Path::new(&directory_filename).exists() {
         panic!(
             "\n\n  \
-             Can't download {} using curl!\n\n",
-            filename,
+             Can't download {} to {} using curl!\n\n",
+            filename, directory_filename
         );
     }
 
     // Call tar
+    change_dir(output_directory);
     if !path::Path::new(&binutils_name).exists() {
         execute_command("tar", vec!["xzf", &filename]);
     }
 
     // Calls commands to build binutils
     if path::Path::new(&binutils_name).exists() {
-        let crate_dir = env::current_dir().unwrap();
         change_dir(&binutils_name);
-        let prefix_arg = format!("--prefix={}/built/", crate_dir.display());
+        let prefix_arg = format!("--prefix={}/built/", output_directory);
         execute_command(
             "./configure",
-            vec![&prefix_arg, "--enable-shared", "--enable-targets=all"],
+            vec![&prefix_arg, "--enable-targets=all"],
         );
         execute_command("make", vec!["-j8"]);
         execute_command("make", vec!["install"]);
-        execute_command("cp", vec!["opcodes/config.h", "../built/include/"]);
-        change_dir("..");
+        execute_command("cp", vec!["opcodes/config.h", 
+                                   &format!("{}/built/include/", output_directory)
+                                  ]
+                       );
+        execute_command("cp", vec!["libiberty/libiberty.a", 
+                                   &format!("{}/built/lib/", output_directory)
+                                  ]
+                       );
+        //change_dir("..");
     }
 }
 
 fn main() {
+    //let version = ("2.29.1", "0d9d2bbf71e17903f26a676e7fba7c200e581c84b8f2f43e72d875d0e638771c");
     let version = "2.29.1";
 
-    build_binutils(version);
+    let out_dir = match env::var_os("OUT_DIR") {
+        Some(dir) => dir,
+        None => panic!(
+                    "\n\n  \
+                     OUT_DIR variable is not set!\n\n"
+                ),
+    };
+
+    let out_directory = out_dir.as_os_str().to_str().expect("Invalid OUT_DIR content!");
+    build_binutils(version, out_directory);
 
     cc::Build::new()
         .file("src/utils.c")
-        .include("built/include/")
+        .include(format!("{}/built/include/", out_directory))
         .compile("utils");
 
     // Locally compiled binutils libraries path
-    println!("cargo:rustc-link-search=built/lib/");
+    println!("cargo:rustc-link-search=native={}", format!("{}/built/lib/", out_directory));
+    println!("cargo:rustc-link-lib=static=bfd");
+    println!("cargo:rustc-link-lib=static=opcodes");
+    println!("cargo:rustc-link-lib=static=iberty");
+
+    // Link to zlib
+    println!("cargo:rustc-link-search=native=/usr/lib/");
+    println!("cargo:rustc-link-lib=static=z");
 }
