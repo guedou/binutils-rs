@@ -129,7 +129,13 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 
     // Retrive bfd_arch and bfd_mach from the architecture name
-    let bfd_arch_mach = bfd.set_arch_mach(arch_name);
+    let bfd_arch_mach = match bfd.set_arch_mach(arch_name) {
+        Ok(arch_mach) => arch_mach,
+        Err(e) => {
+            println!("Error with set_arch_mach() - {}", e);
+            return;
+        }
+    };
 
     // Construct disassembler_ftype class
     let disassemble = match bfd.raw_disassembler(bfd_arch_mach.0, false, bfd_arch_mach.1) {
@@ -181,7 +187,7 @@ fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 
     // Set bfd_arch and bfd_mach from the architecture name
-    bfd.set_arch_mach(arch_name);
+    let _ = bfd.set_arch_mach(arch_name);
 
     // Create a disassemble_info structure
     let mut info = match DisassembleInfo::new() {
@@ -223,7 +229,7 @@ fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 
     // Set bfd_arch and bfd_mach from the architecture name
-    bfd.set_arch_mach(arch_name);
+    let _ = bfd.set_arch_mach(arch_name);
 
     // Create a disassemble_info structure
     let mut info = match DisassembleInfo::new() {

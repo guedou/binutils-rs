@@ -7,8 +7,8 @@ use std;
 use std::ffi::{CStr, CString};
 
 use Error;
-use helpers::{buffer_asm, buffer_asm_ptr, call_bfd_big_endian, get_arch, get_mach,
-              get_start_address};
+use helpers::{buffer_asm, buffer_asm_ptr, get_arch, get_mach, get_start_address,
+              macro_bfd_big_endian};
 use opcodes::{disassembler, DisassembleInfo};
 use section::{Section, SectionRaw};
 
@@ -19,11 +19,11 @@ extern "C" {
 
     pub fn bfd_errmsg(error_tag: c_uint) -> *const c_char;
 
-    pub fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const BfdRaw;
+    fn bfd_openr(filename: *const c_char, target: *const c_char) -> *const BfdRaw;
 
-    pub fn bfd_check_format(bfd: *const BfdRaw, bfd_format: BfdFormat) -> bool;
+    fn bfd_check_format(bfd: *const BfdRaw, bfd_format: BfdFormat) -> bool;
 
-    pub fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
+    fn bfd_get_section_by_name(bfd: *const BfdRaw, name: *const c_char) -> *const SectionRaw;
 
     fn bfd_arch_list() -> *const uintptr_t;
 
@@ -51,7 +51,6 @@ impl Bfd {
     }
 
     pub fn empty() -> Bfd {
-        // TODO: check results!
         unsafe { bfd_init() };
         Bfd {
             bfd: std::ptr::null(),
@@ -60,16 +59,17 @@ impl Bfd {
     }
 
     pub fn openr(filename: &str, target: &str) -> Result<Bfd, Error> {
-        // TODO: check results!
         unsafe { bfd_init() };
 
-        let filename_cstring = CString::new(filename).unwrap();
-        let target_cstring = CString::new(target).unwrap();
+        let filename_cstring = CString::new(filename)?;
+        let target_cstring = CString::new(target)?;
 
         let bfd_file = unsafe { bfd_openr(filename_cstring.as_ptr(), target_cstring.as_ptr()) };
+
         if bfd_file.is_null() {
             return Err(bfd_convert_error());
         };
+
         Ok(Bfd {
             bfd: bfd_file,
             arch_mach: (0, 0),
@@ -77,19 +77,21 @@ impl Bfd {
     }
 
     pub fn check_format(&self, format: BfdFormat) -> Option<Error> {
-        // TODO: check results!
         if !unsafe { bfd_check_format(self.bfd, format) } {
             return Some(bfd_convert_error());
-        }
+        };
+
         None
     }
 
     pub fn get_section_by_name(&self, section_name: &str) -> Result<Section, Error> {
-        let section_name_cstring = CString::new(section_name).unwrap();
+        let section_name_cstring = CString::new(section_name)?;
+
         let section = unsafe { bfd_get_section_by_name(self.bfd, section_name_cstring.as_ptr()) };
         if section.is_null() {
             return Err(Error::SectionError(section_name.to_string()));
         };
+
         Ok(Section::from_raw(section))
     }
 
@@ -107,7 +109,6 @@ impl Bfd {
         mach: c_ulong,
     ) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
         let disassemble = unsafe { disassembler(arch, big_endian, mach, self.bfd) };
-
         if (disassemble as *const c_uint).is_null() {
             return Err(Error::CommonError(String::from(
                 "Error creating disassembler!",
@@ -115,11 +116,13 @@ impl Bfd {
         };
 
         let disassemble_closure = move |p: c_ulong, di: &DisassembleInfo| -> c_ulong {
+            // Reset the buffer pointer
             unsafe {
-                buffer_asm_ptr = buffer_asm.as_ptr() as *mut c_char; // TODO: not always useful!
+                buffer_asm_ptr = buffer_asm.as_ptr() as *mut c_char;
             };
             disassemble(p, di.raw())
         };
+
         Ok(Box::new(disassemble_closure))
     }
 
@@ -128,7 +131,7 @@ impl Bfd {
     }
 
     pub fn is_big_endian(&self) -> bool {
-        unsafe { call_bfd_big_endian(self.bfd) }
+        unsafe { macro_bfd_big_endian(self.bfd) }
     }
 
     pub fn arch_list(&self) -> Vec<&str> {
@@ -160,11 +163,11 @@ impl Bfd {
         ret_vec
     }
 
-    pub fn set_arch_mach(&mut self, arch: &str) -> (u32, u64) {
-        let arch_cstring = CString::new(arch).unwrap();
+    pub fn set_arch_mach(&mut self, arch: &str) -> Result<(u32, u64), Error> {
+        let arch_cstring = CString::new(arch)?;
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
-        self.arch_mach
+        Ok(self.arch_mach)
     }
 }
 
@@ -184,4 +187,33 @@ pub enum BfdFormat {
     bfd_archive,
     bfd_core,
     bfd_type_end,
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_bfd_empty() {
+        use std;
+        use bfd;
+
+        let bfd = bfd::Bfd::empty();
+        assert_eq!(bfd.bfd, std::ptr::null());
+        assert_eq!(bfd.arch_mach, (0, 0));
+    }
+
+    #[test]
+    fn test_bfd_get_section_bad() {
+        use std;
+        use bfd;
+        use Error;
+
+        let bfd = bfd::Bfd::openr("/bin/ls", "elf64-x86-64").unwrap();
+        let raw_section_name = b".\0text".to_vec();
+        let section_name = unsafe { std::str::from_utf8_unchecked(&raw_section_name) };
+        match bfd.get_section_by_name(section_name) {
+            Ok(_) => assert!(true),
+            Err(Error::NulError(_)) => assert!(true),
+            Err(_) => assert!(false),
+        }
+    }
 }

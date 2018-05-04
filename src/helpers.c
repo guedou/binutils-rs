@@ -74,7 +74,7 @@ void set_print_address_func(struct disassemble_info *info, print_address_func pr
 }
 
 
-unsigned int call_bfd_big_endian(bfd *bfdFile) {
+unsigned int macro_bfd_big_endian(bfd *bfdFile) {
     return bfd_big_endian(bfdFile);
 }
 

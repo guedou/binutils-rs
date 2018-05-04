@@ -19,6 +19,7 @@ pub enum Error {
     BfdErr(u32, String),
     SectionError(String),
     CommonError(String),
+    NulError(std::ffi::NulError),
 }
 
 impl fmt::Display for Error {
@@ -27,6 +28,14 @@ impl fmt::Display for Error {
             &Error::BfdErr(tag, ref msg) => write!(f, "{} ({})", msg, tag),
             &Error::SectionError(ref section) => write!(f, "Can't find '{}' section!", section),
             &Error::CommonError(ref msg) => write!(f, "{}", msg),
+            &Error::NulError(ref error) => write!(f, "{}", error),
         }
+    }
+}
+
+// Neede to use the ? operator on Cstring::new()
+impl From<std::ffi::NulError> for Error {
+    fn from(error: std::ffi::NulError) -> Self {
+        Error::NulError(error)
     }
 }
