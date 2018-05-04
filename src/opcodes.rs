@@ -72,10 +72,6 @@ impl DisassembleInfo {
             let len = buffer.len();
             helpers::configure_disassemble_info_buffer(self.info, arch, mach);
             helpers::set_buffer(self.info, ptr, len as u32, offset);
-            // Toshiba MeP
-            if arch == 60 {
-                helpers::mep_disassemble_info(self.info);
-            }
         }
     }
 

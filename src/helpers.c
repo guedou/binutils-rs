@@ -99,20 +99,6 @@ void free_disassemble_info(struct disassemble_info *info) {
   free(info);
 }
 
-void mep_disassemble_info(struct disassemble_info* info) {
-  // From GDB
-  info->octets_per_byte = 1;
-  info->skip_zeroes = 256;
-  info->skip_zeroes_at_end = 0;
-  info->insn_type = dis_noninsn;
-  info->target = 0;
-  info->target2 = 0;
-  info->stop_vma = 0;
-  info->flags = DISASSEMBLE_DATA;
-
-  info->section->flags = 0; // GV: important grep VLIW in dis-mep.c to know why
-}
-
 
 /*** bfd structure helpers ***/
 

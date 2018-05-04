@@ -48,8 +48,6 @@ extern "C" {
         vma: c_ulong,
     );
 
-    pub(crate) fn mep_disassemble_info(info: *const DisassembleInfoRaw);
-
     pub(crate) fn free_disassemble_info(info: *const DisassembleInfoRaw);
 
     pub(crate) fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
