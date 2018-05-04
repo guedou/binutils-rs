@@ -6,6 +6,7 @@ use binutils::bfd;
 use binutils::instruction;
 use binutils::instruction::Instruction;
 use binutils::opcodes::DisassembleInfo;
+use binutils::utils;
 
 fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
@@ -107,6 +108,34 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 }
 
+fn test_buffer_utils(arch_name: &str, buffer: Vec<u8>, offset: u64) {
+    println!("---");
+    println!("From a buffer (binutils::utils) - {}", arch_name);
+
+    let mut info = match utils::disassemble_buffer(arch_name, buffer, offset) {
+        Ok(i) => i,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    // Disassemble the buffer
+    loop {
+        let instruction = match info.disassemble() {
+            None => break,
+            Some(i) => match i {
+                Ok(i) => i,
+                Err(e) => {
+                    println!("{}", e);
+                    break;
+                }
+            },
+        };
+        println!("{}", instruction);
+    }
+}
+
 fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
     println!("From a buffer (iter) - {}", arch_name);
@@ -140,6 +169,14 @@ fn main() {
     test_buffer_full("i386:x86-64", vec![0xc3, 0x90, 0x66, 0x90], 0xA00);
 
     test_buffer_compact(
+        "mep",
+        vec![
+            0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
+        ],
+        0xC00000,
+    );
+
+    test_buffer_utils(
         "mep",
         vec![
             0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00

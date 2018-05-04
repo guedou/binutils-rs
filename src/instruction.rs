@@ -34,7 +34,8 @@ pub fn get_opcode<'a>() -> Result<&'a str, Error> {
     };
 
     // Extract the instruction string
-    let opcode_raw = unsafe { CStr::from_bytes_with_nul_unchecked(&helpers::buffer_asm[0..index + 1]) };
+    let opcode_raw =
+        unsafe { CStr::from_bytes_with_nul_unchecked(&helpers::buffer_asm[0..index + 1]) };
     Ok(opcode_raw.to_str()?)
 }
 

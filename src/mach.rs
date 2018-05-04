@@ -1,7 +1,10 @@
+// Guillaume Valadon <guillaume@valadon.net>
+// binutils - mach.rs
+//
 #![allow(dead_code)]
 #![allow(non_upper_case_globals)]
 
-// Manully generate for binutils-2.29.1
+// Manually generate for binutils-2.29.1
 pub const bfd_mach_m68000: u64 = 1;
 pub const bfd_mach_m68008: u64 = 2;
 pub const bfd_mach_m68010: u64 = 3;
@@ -130,7 +133,8 @@ pub const bfd_mach_x86_64_nacl: u64 = (bfd_mach_x86_64 | bfd_mach_i386_nacl);
 pub const bfd_mach_x64_32_nacl: u64 = (bfd_mach_x64_32 | bfd_mach_i386_nacl);
 pub const bfd_mach_iamcu: u64 = (1 << 8);
 pub const bfd_mach_i386_iamcu: u64 = (bfd_mach_i386_i386 | bfd_mach_iamcu);
-pub const bfd_mach_i386_iamcu_intel_syntax: u64 = (bfd_mach_i386_iamcu | bfd_mach_i386_intel_syntax);
+pub const bfd_mach_i386_iamcu_intel_syntax: u64 =
+    (bfd_mach_i386_iamcu | bfd_mach_i386_intel_syntax);
 pub const bfd_mach_h8300: u64 = 1;
 pub const bfd_mach_h8300h: u64 = 2;
 pub const bfd_mach_h8300s: u64 = 3;

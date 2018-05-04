@@ -3,13 +3,14 @@
 [ ] check binutils tarball checksum
 [x] check if the MeP specific helper is really useful
 
-[ ] build a high level API to disassemble a section from an ELF and a buffer
+[x] build a high level API to disassemble a section from an ELF and a buffer
     src/utils.rs
     disassemble_elf_section("file", ".text") -> DisassembleInfo
     disassemble_buffer((arch, mach), buffer) -> DisassembleInfo
 
 ## Wish list / Roadmap
 
+[ ] add Travis support: test and rustfmt
 [ ] write more tests
 [ ] generate mach.rs with build.rs
 [ ] use features to select architectures

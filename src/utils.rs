@@ -1,8 +1,36 @@
 // Guillaume Valadon <guillaume@valadon.net>
-// nutils - utils.rs
+// binutils - utils.rs
 
-use opcodes::DisassembleInfoRaw;
+use Error;
+use bfd::Bfd;
+use opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
 extern "C" {
     pub fn show_buffer(info: *const DisassembleInfoRaw);
+}
+
+pub fn disassemble_buffer(
+    arch_name: &str,
+    buffer: Vec<u8>,
+    offset: u64,
+) -> Result<DisassembleInfo, Error> {
+    // Create a bfd structure
+    let mut bfd = Bfd::empty();
+
+    // Check if the architecture is supported
+    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+        let error = Error::CommonError(format!("Unsuported architecture ({})!", arch_name));
+        return Err(error);
+    }
+
+    // Set bfd_arch and bfd_mach from the architecture name
+    let _ = bfd.set_arch_mach(arch_name);
+
+    // Create a disassemble_info structure
+    let mut info = DisassembleInfo::new()?;
+
+    // Configure the disassemble_info structure
+    info.init_buffer(&buffer, bfd, offset);
+
+    return Ok(info);
 }
