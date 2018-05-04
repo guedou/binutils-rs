@@ -42,26 +42,27 @@ fn change_dir(directory: &str) {
 }
 
 fn build_binutils(version: &str, output_directory: &str) {
-    // Build binutils
+    // Build binutils from source
 
     let binutils_name = format!("binutils-{}", version);
     let filename = format!("{}.tar.gz", binutils_name);
     let directory_filename = format!("{}/{}", output_directory, filename);
 
-    // Check if binutils is built
+    // Check if binutils is already built
     if path::Path::new(&format!("{}/built/", output_directory)).exists() {
         return;
     }
 
-    // Check if the tarball exists
+    // Check if the tarball exists, or download it
     if !path::Path::new(&filename).exists() {
-        execute_command("curl",
-                        vec![format!("https://ftp.gnu.org/gnu/binutils/{}",
-                                     filename).as_str(),
-                             "--output",
-                             &directory_filename,
-                            ]
-                       );
+        execute_command(
+            "curl",
+            vec![
+                format!("https://ftp.gnu.org/gnu/binutils/{}", filename).as_str(),
+                "--output",
+                &directory_filename,
+            ],
+        );
     }
 
     // GV: verify checksum
@@ -85,21 +86,25 @@ fn build_binutils(version: &str, output_directory: &str) {
     if path::Path::new(&binutils_name).exists() {
         change_dir(&binutils_name);
         let prefix_arg = format!("--prefix={}/built/", output_directory);
-        execute_command(
-            "./configure",
-            vec![&prefix_arg, "--enable-targets=all"],
-        );
+        execute_command("./configure", vec![&prefix_arg, "--enable-targets=all"]);
         execute_command("make", vec!["-j8"]);
         execute_command("make", vec!["install"]);
-        execute_command("cp", vec!["opcodes/config.h", 
-                                   &format!("{}/built/include/", output_directory)
-                                  ]
-                       );
-        execute_command("cp", vec!["libiberty/libiberty.a", 
-                                   &format!("{}/built/lib/", output_directory)
-                                  ]
-                       );
-        //change_dir("..");
+
+        // Copy useful files
+        execute_command(
+            "cp",
+            vec![
+                "opcodes/config.h",
+                &format!("{}/built/include/", output_directory),
+            ],
+        );
+        execute_command(
+            "cp",
+            vec![
+                "libiberty/libiberty.a",
+                &format!("{}/built/lib/", output_directory),
+            ],
+        );
     }
 }
 
@@ -107,24 +112,35 @@ fn main() {
     //let version = ("2.29.1", "0d9d2bbf71e17903f26a676e7fba7c200e581c84b8f2f43e72d875d0e638771c");
     let version = "2.29.1";
 
+    // Extract the out directory from the env variable
     let out_dir = match env::var_os("OUT_DIR") {
         Some(dir) => dir,
         None => panic!(
-                    "\n\n  \
-                     OUT_DIR variable is not set!\n\n"
-                ),
+            "\n\n  \
+             OUT_DIR variable is not set!\n\n"
+        ),
     };
 
-    let out_directory = out_dir.as_os_str().to_str().expect("Invalid OUT_DIR content!");
+    // Build binutils
+    let current_dir = env::current_dir().unwrap();
+    let out_directory = out_dir
+        .as_os_str()
+        .to_str()
+        .expect("Invalid OUT_DIR content!");
     build_binutils(version, out_directory);
 
+    // Build our C helpers
+    change_dir(current_dir.to_str().unwrap());
     cc::Build::new()
         .file("src/utils.c")
         .include(format!("{}/built/include/", out_directory))
         .compile("utils");
 
     // Locally compiled binutils libraries path
-    println!("cargo:rustc-link-search=native={}", format!("{}/built/lib/", out_directory));
+    println!(
+        "cargo:rustc-link-search=native={}",
+        format!("{}/built/lib/", out_directory)
+    );
     println!("cargo:rustc-link-lib=static=bfd");
     println!("cargo:rustc-link-lib=static=opcodes");
     println!("cargo:rustc-link-lib=static=iberty");

@@ -17,6 +17,7 @@
 [ ] check binutils tarball checksum
 [x] build to to OUT_DIR & use static libraries !
 [x] download binutils-2.29.1.tar.gz from build.rs!
+[x ] fix cargo package
 
 [x] make disassemble return an Instruction structure
 
