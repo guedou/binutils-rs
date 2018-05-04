@@ -1,12 +1,12 @@
 // Guillaume Valadon <guillaume@valadon.net>
-// binutils libopcodes bindings- opcodes.rs
+// binutils libopcodes bindings - opcodes.rs
 
 use libc::{c_uchar, c_uint, c_ulong};
 
+use super::Error;
 use bfd::{Bfd, BfdRaw};
 use instruction::{get_instruction, Instruction};
 use section::{Section, SectionRaw};
-use super::Error;
 
 extern "C" {
     pub fn disassembler(

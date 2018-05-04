@@ -1,4 +1,5 @@
 // Guillaume Valadon <guillaume@valadon.net>
+// C based binutils and custom helpers
 
 #include <config.h>
 
@@ -11,7 +12,6 @@
 #include <dis-asm.h>
 
 // Silly macro that helps removing the unused warnings
-
 #define UNUSED_VARIABLE(id) id=id
 
 #define R_ASM_BUFSIZE 64

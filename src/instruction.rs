@@ -5,7 +5,8 @@ use std::ffi::CStr;
 use std::fmt;
 
 use Error;
-use bfd::{buffer_asm, Bfd};
+use bfd::Bfd;
+use helpers::buffer_asm;
 use opcodes::DisassembleInfo;
 
 #[allow(dead_code)]

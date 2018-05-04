@@ -2,17 +2,18 @@
 // binutils - lib.rs
 
 pub mod bfd;
+pub mod helpers;
 pub mod instruction;
 pub mod mach;
 pub mod opcodes;
 pub mod section;
+pub mod utils;
 
 extern crate libc;
 
 use std::fmt;
 
-use opcodes::DisassembleInfoRaw;
-
+// Specific errors
 #[derive(Debug)]
 pub enum Error {
     BfdErr(u32, String),
@@ -28,8 +29,4 @@ impl fmt::Display for Error {
             &Error::CommonError(ref msg) => write!(f, "{}", msg),
         }
     }
-}
-
-extern "C" {
-    pub fn show_buffer(info: *const DisassembleInfoRaw);
 }

@@ -132,9 +132,9 @@ fn main() {
     // Build our C helpers
     change_dir(current_dir.to_str().unwrap());
     cc::Build::new()
-        .file("src/utils.c")
+        .file("src/helpers.c")
         .include(format!("{}/built/include/", out_directory))
-        .compile("utils");
+        .compile("helpers");
 
     // Locally compiled binutils libraries path
     println!(
