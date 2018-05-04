@@ -41,7 +41,7 @@ pub fn get_opcode<'a>() -> Result<&'a str, Error> {
 
     // Extract the instruction string
     let opcode_raw = unsafe { CStr::from_bytes_with_nul_unchecked(&buffer_asm[0..index + 1]) };
-    Ok(opcode_raw.to_str().unwrap())
+    Ok(opcode_raw.to_str()?)
 }
 
 pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, Error> {
@@ -55,6 +55,15 @@ pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, 
 }
 
 impl<'a> Instruction<'a> {
+    pub fn empty_with_error(error: Option<Error>) -> Instruction<'a> {
+        Instruction {
+            offset: 0,
+            length: 0,
+            opcode: "",
+            info: None,
+            error: error,
+        }
+    }
     pub fn from_buffer(
         info: &'a mut DisassembleInfo,
         bfd: Bfd,
@@ -62,7 +71,17 @@ impl<'a> Instruction<'a> {
         offset: u64,
     ) -> Instruction<'a> {
         info.init_buffer(buffer, bfd, offset);
-        let mut instruction = info.disassemble().unwrap().unwrap(); // TODO: fix it!
+
+        let instr_result = match info.disassemble() {
+            Some(i) => i,
+            None => return Instruction::empty_with_error(None), // No more instruction to disassemble
+        };
+
+        let mut instruction = match instr_result {
+            Ok(i) => i,
+            Err(e) => return Instruction::empty_with_error(Some(e)),
+        };
+
         instruction.info = Some(info);
         instruction
     }
@@ -72,7 +91,7 @@ impl<'a> Iterator for Instruction<'a> {
     type Item = Instruction<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let info = self.info.take().unwrap(); // Remove info for the structure
+        let info = self.info.take().unwrap(); // Temporarily remove info from the structure
         let i = info.disassemble();
         match i {
             Some(r) => match r {

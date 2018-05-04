@@ -10,14 +10,17 @@
 [x] implement the DisassemleInfo destructor
 [x] rename tmp_buf_asm: the ptr is likely useless!
 [x] rename scan_arch to set_arch_mach
-[ ] clean and comment functions
+[x] clean and comment functions
 [x] licence MIT
 [ ] try to use the va crate!
 [ ] move main.rs to examples/
 [ ] check binutils tarball checksum
 [x] build to to OUT_DIR & use static libraries !
 [x] download binutils-2.29.1.tar.gz from build.rs!
-[x ] fix cargo package
+[x] fix cargo package
+[ ] check if the MeP specific helper is useful
+[ ] get_opcode: use buffer_asm_ptr to get the NUL byte
+[ ] use the error_chain crate
 
 [x] make disassemble return an Instruction structure
 

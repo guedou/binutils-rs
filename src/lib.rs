@@ -20,6 +20,7 @@ pub enum Error {
     SectionError(String),
     CommonError(String),
     NulError(std::ffi::NulError),
+    Utf8Error(std::str::Utf8Error),
 }
 
 impl fmt::Display for Error {
@@ -29,13 +30,21 @@ impl fmt::Display for Error {
             &Error::SectionError(ref section) => write!(f, "Can't find '{}' section!", section),
             &Error::CommonError(ref msg) => write!(f, "{}", msg),
             &Error::NulError(ref error) => write!(f, "{}", error),
+            &Error::Utf8Error(ref error) => write!(f, "{}", error),
         }
     }
 }
 
-// Neede to use the ? operator on Cstring::new()
+// Needed to use the ? operator on Cstring::new()
 impl From<std::ffi::NulError> for Error {
     fn from(error: std::ffi::NulError) -> Self {
         Error::NulError(error)
+    }
+}
+
+// Needed to use the ? operator on Cstr.to_str()
+impl From<std::str::Utf8Error> for Error {
+    fn from(error: std::str::Utf8Error) -> Self {
+        Error::Utf8Error(error)
     }
 }

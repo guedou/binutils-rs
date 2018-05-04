@@ -1,12 +1,13 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils libopcodes bindings - opcodes.rs
 
-use libc::{c_uchar, c_uint, c_ulong};
+use libc::{c_uint, c_ulong};
 
 use super::Error;
 use bfd::{Bfd, BfdRaw};
+use helpers;
 use instruction::{get_instruction, Instruction};
-use section::{Section, SectionRaw};
+use section::Section;
 
 extern "C" {
     pub fn disassembler(
@@ -17,39 +18,6 @@ extern "C" {
     ) -> extern "C" fn(pc: c_ulong, info: *const DisassembleInfoRaw) -> c_ulong;
 
     fn disassemble_init_for_target(dinfo: *const DisassembleInfoRaw);
-
-    // Custom helpers
-    fn new_disassemble_info() -> *const DisassembleInfoRaw;
-
-    fn configure_disassemble_info(
-        info: *const DisassembleInfoRaw,
-        section: *const SectionRaw,
-        bfd: *const BfdRaw,
-    );
-
-    fn configure_disassemble_info_buffer(
-        info: *const DisassembleInfoRaw,
-        arch: c_uint,
-        mach: c_ulong,
-    );
-
-    fn set_print_address_func(
-        info: *const DisassembleInfoRaw,
-        print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
-    );
-
-    fn set_buffer(
-        info: *const DisassembleInfoRaw,
-        buffer: *const c_uchar,
-        length: c_uint,
-        vma: c_ulong,
-    );
-
-    fn mep_disassemble_info(info: *const DisassembleInfoRaw);
-
-    fn free_disassemble_info(info: *const DisassembleInfoRaw);
-
-    fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
 }
 
 pub enum DisassembleInfoRaw {}
@@ -62,12 +30,13 @@ pub struct DisassembleInfo {
 
 impl DisassembleInfo {
     pub fn new() -> Result<DisassembleInfo, Error> {
-        let new_info = unsafe { new_disassemble_info() };
+        let new_info = unsafe { helpers::new_disassemble_info() };
         if new_info.is_null() {
             return Err(Error::CommonError(String::from(
                 "Error while getting disassemble_info!",
             )));
         }
+
         Ok(DisassembleInfo {
             info: new_info,
             disassembler: None,
@@ -80,7 +49,7 @@ impl DisassembleInfo {
     }
 
     pub fn configure(&self, section: Section, bfd: Bfd) {
-        unsafe { configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
+        unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
     pub fn init_buffer(&mut self, buffer: &Vec<u8>, bfd: Bfd, offset: u64) {
@@ -91,6 +60,7 @@ impl DisassembleInfo {
                 return;
             }
         };
+
         self.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, buffer, offset);
         self.configure_disassembler(disassemble_fn);
         self.init();
@@ -100,11 +70,11 @@ impl DisassembleInfo {
         unsafe {
             let ptr = buffer.as_ptr();
             let len = buffer.len();
-            configure_disassemble_info_buffer(self.info, arch, mach);
-            set_buffer(self.info, ptr, len as u32, offset);
-            // MeP
+            helpers::configure_disassemble_info_buffer(self.info, arch, mach);
+            helpers::set_buffer(self.info, ptr, len as u32, offset);
+            // Toshiba MeP
             if arch == 60 {
-                mep_disassemble_info(self.info);
+                helpers::mep_disassemble_info(self.info);
             }
         }
     }
@@ -117,14 +87,14 @@ impl DisassembleInfo {
         &self,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     ) {
-        unsafe { set_print_address_func(self.info, print_function) }
+        unsafe { helpers::set_print_address_func(self.info, print_function) }
     }
 
     pub fn configure_disassembler(
         &mut self,
         disassembler: Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>,
     ) {
-        self.pc = unsafe { get_disassemble_info_section_vma(self.info) };
+        self.pc = unsafe { helpers::get_disassemble_info_section_vma(self.info) };
         self.disassembler = Some(disassembler)
     }
 
@@ -139,7 +109,6 @@ impl DisassembleInfo {
         };
 
         let count = f(self.pc, self);
-        //TODO: use an unsigned integer !
         if count == 4294967295 {
             return None;
         }
@@ -152,7 +121,7 @@ impl DisassembleInfo {
 impl Drop for DisassembleInfo {
     fn drop(&mut self) {
         unsafe {
-            free_disassemble_info(self.info);
+            helpers::free_disassemble_info(self.info);
         };
     }
 }
