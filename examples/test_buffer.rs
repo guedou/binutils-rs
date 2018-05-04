@@ -65,9 +65,9 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     }
 }
 
-fn test_buffer_simplified(arch_name: &str, buffer: Vec<u8>, offset: u64) {
+fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
-    println!("From a buffer (simplified API) - {}", arch_name);
+    println!("From a buffer (compact API) - {}", arch_name);
 
     let mut bfd = bfd::Bfd::empty();
 
@@ -139,7 +139,7 @@ fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
 fn main() {
     test_buffer_full("i386:x86-64", vec![0xc3, 0x90, 0x66, 0x90], 0xA00);
 
-    test_buffer_simplified(
+    test_buffer_compact(
         "mep",
         vec![
             0x53, 0x53, 0x08, 0xd8, 0x01, 0x00, 0x53, 0x53, 0x30, 0xeb, 0x5b, 0x00
