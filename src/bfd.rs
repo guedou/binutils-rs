@@ -202,6 +202,32 @@ mod tests {
     }
 
     #[test]
+    fn test_bfd_openr() {
+        use std;
+        use bfd;
+        use Error;
+
+        let raw_binary_name = b"bin\0name".to_vec();
+        let binary_name = unsafe { std::str::from_utf8_unchecked(&raw_binary_name) };
+        match bfd::Bfd::openr(binary_name, "elf64-x86-64") {
+            Ok(_) => assert!(false),
+            Err(Error::NulError(_)) => assert!(true),
+            Err(_) => assert!(false),
+        };
+
+        match bfd::Bfd::openr("/bin/ls", "elf64-x86-64") {
+            Ok(_) => assert!(true),
+            Err(_) => assert!(false),
+        };
+
+        match bfd::Bfd::openr("", "") {
+            Ok(_) => assert!(false),
+            Err(Error::BfdErr(_, _)) => assert!(true),
+            Err(_) => assert!(false),
+        };
+    }
+
+    #[test]
     fn test_bfd_get_section_bad() {
         use std;
         use bfd;
