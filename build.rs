@@ -146,6 +146,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=iberty");
 
     // Link to zlib
-    println!("cargo:rustc-link-search=native=/usr/lib/");
+    println!("cargo:rustc-link-search=native=/usr/lib/"); // Arch Linux
+    println!("cargo:rustc-link-search=native=/usr/lib/x86_64-linux-gnu/"); // Debian based
     println!("cargo:rustc-link-lib=static=z");
 }
