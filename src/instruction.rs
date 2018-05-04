@@ -6,7 +6,7 @@ use std::fmt;
 
 use Error;
 use bfd::Bfd;
-use helpers::buffer_asm;
+use helpers;
 use opcodes::DisassembleInfo;
 
 #[allow(dead_code)]
@@ -26,21 +26,15 @@ impl<'a> fmt::Display for Instruction<'a> {
 }
 
 pub fn get_opcode<'a>() -> Result<&'a str, Error> {
-    // Look for the first nul byte in the array
-    let mut buffer_itr = unsafe { buffer_asm.iter() };
-    let index_opt = buffer_itr.position(|&c| c == 0);
-
-    let index = match index_opt {
-        Some(i) => i,
-        None => {
-            return Err(Error::CommonError(String::from(
-                "No nul byte found in disassembly result!",
-            )))
-        }
+    // Compute the index of the first nul byte in the array
+    let index = unsafe {
+        let addr_end = helpers::buffer_asm_ptr as usize;
+        let addr_start = (&helpers::buffer_asm as *const u8) as usize;
+        addr_end - addr_start
     };
 
     // Extract the instruction string
-    let opcode_raw = unsafe { CStr::from_bytes_with_nul_unchecked(&buffer_asm[0..index + 1]) };
+    let opcode_raw = unsafe { CStr::from_bytes_with_nul_unchecked(&helpers::buffer_asm[0..index + 1]) };
     Ok(opcode_raw.to_str()?)
 }
 

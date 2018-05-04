@@ -10,7 +10,6 @@ extern crate binutils;
 use binutils::bfd;
 use binutils::helpers;
 use binutils::instruction;
-use binutils::instruction::Instruction;
 use binutils::opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
 extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
