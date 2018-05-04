@@ -1,7 +1,7 @@
 ## Before releasing 0.1.0
 
 [x] try to use the va crate!
-[ ] move main.rs to examples/
+[x] move main.rs to examples/
 [ ] check binutils tarball checksum
 [ ] check if the MeP specific helper is really useful
 [ ] get_opcode: use buffer_asm_ptr to get the NUL byte
