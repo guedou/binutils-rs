@@ -104,7 +104,7 @@ impl DisassembleInfo {
         };
 
         let count = f(self.pc, self);
-        if count == 4294967295 {
+        if count == 4_294_967_295 {
             return None;
         }
         let instruction = get_instruction(self.pc, count);
