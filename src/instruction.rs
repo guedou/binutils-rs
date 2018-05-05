@@ -41,8 +41,8 @@ pub fn get_opcode<'a>() -> Result<&'a str, Error> {
 
 pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, Error> {
     Ok(Instruction {
-        offset: offset,
-        length: length,
+        offset,
+        length,
         opcode: get_opcode().unwrap(),
         info: None,
         error: None,
@@ -56,7 +56,7 @@ impl<'a> Instruction<'a> {
             length: 0,
             opcode: "",
             info: None,
-            error: error,
+            error,
         }
     }
     pub fn from_buffer(
