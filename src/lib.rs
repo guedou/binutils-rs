@@ -25,12 +25,12 @@ pub enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Error::BfdErr(tag, ref msg) => write!(f, "{} ({})", msg, tag),
-            &Error::SectionError(ref section) => write!(f, "Can't find '{}' section!", section),
-            &Error::CommonError(ref msg) => write!(f, "{}", msg),
-            &Error::NulError(ref error) => write!(f, "{}", error),
-            &Error::Utf8Error(ref error) => write!(f, "{}", error),
+        match *self {
+            Error::BfdErr(tag, ref msg) => write!(f, "{} ({})", msg, tag),
+            Error::SectionError(ref section) => write!(f, "Can't find '{}' section!", section),
+            Error::CommonError(ref msg) => write!(f, "{}", msg),
+            Error::NulError(ref error) => write!(f, "{}", error),
+            Error::Utf8Error(ref error) => write!(f, "{}", error),
         }
     }
 }
