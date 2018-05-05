@@ -2,6 +2,7 @@
 // binutils - build.rs
 
 use std::env;
+use std::ffi;
 use std::path;
 use std::process;
 
@@ -41,7 +42,7 @@ fn change_dir(directory: &str) {
     }
 }
 
-fn build_binutils(version: &str, output_directory: &str) {
+fn build_binutils(version: &str, output_directory: &str, targets: &str) {
     // Build binutils from source
 
     let binutils_name = format!("binutils-{}", version);
@@ -86,7 +87,10 @@ fn build_binutils(version: &str, output_directory: &str) {
     if path::Path::new(&binutils_name).exists() {
         change_dir(&binutils_name);
         let prefix_arg = format!("--prefix={}/built/", output_directory);
-        execute_command("./configure", vec![&prefix_arg, "--enable-targets=all"]);
+        execute_command(
+            "./configure",
+            vec![&prefix_arg, &format!("--enable-targets={}", targets)],
+        );
         execute_command("make", vec!["-j8"]);
         execute_command("make", vec!["install"]);
 
@@ -120,14 +124,26 @@ fn main() {
              OUT_DIR variable is not set!\n\n"
         ),
     };
-
-    // Build binutils
-    let current_dir = env::current_dir().unwrap();
     let out_directory = out_dir
         .as_os_str()
         .to_str()
         .expect("Invalid OUT_DIR content!");
-    build_binutils(version, out_directory);
+
+    // Retrieve targets to build
+    let targets_var = match env::var_os("TARGETS") {
+        Some(dir) => dir,
+        None => ffi::OsString::from("all"),
+    };
+    let targets = targets_var
+        .as_os_str()
+        .to_str()
+        .expect("Invalid TARGETS content!");
+
+    // Get the current working directory
+    let current_dir = env::current_dir().unwrap();
+
+    // Build binutils
+    build_binutils(version, out_directory, targets);
 
     // Build our C helpers
     change_dir(current_dir.to_str().unwrap());
