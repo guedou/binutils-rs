@@ -112,7 +112,7 @@ fn test_buffer_utils(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     println!("---");
     println!("From a buffer (binutils::utils) - {}", arch_name);
 
-    let mut info = match utils::disassemble_buffer(arch_name, buffer, offset) {
+    let mut info = match utils::disassemble_buffer(arch_name, &buffer, offset) {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);

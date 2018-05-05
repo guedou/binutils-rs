@@ -62,7 +62,7 @@ impl<'a> Instruction<'a> {
     pub fn from_buffer(
         info: &'a mut DisassembleInfo,
         bfd: Bfd,
-        buffer: &Vec<u8>,
+        buffer: &[u8],
         offset: u64,
     ) -> Instruction<'a> {
         info.init_buffer(buffer, bfd, offset);

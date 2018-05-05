@@ -11,7 +11,7 @@ extern "C" {
 
 pub fn disassemble_buffer(
     arch_name: &str,
-    buffer: Vec<u8>,
+    buffer: &[u8],
     offset: u64,
 ) -> Result<DisassembleInfo, Error> {
     // Create a bfd structure
@@ -30,7 +30,7 @@ pub fn disassemble_buffer(
     let mut info = DisassembleInfo::new()?;
 
     // Configure the disassemble_info structure
-    info.init_buffer(&buffer, bfd, offset);
+    info.init_buffer(buffer, bfd, offset);
 
     Ok(info)
 }
