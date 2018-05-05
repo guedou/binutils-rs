@@ -1,8 +1,9 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - mach.rs
-//
+
 #![allow(dead_code)]
 #![allow(non_upper_case_globals)]
+#![allow(clippy)]
 
 // Manually generate for binutils-2.29.1
 pub const bfd_mach_m68000: u64 = 1;
