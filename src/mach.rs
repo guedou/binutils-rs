@@ -3,6 +3,7 @@
 
 #![allow(dead_code)]
 #![allow(non_upper_case_globals)]
+#![allow(unknown_lints)]
 #![allow(clippy)]
 
 // Manually generate for binutils-2.29.1
