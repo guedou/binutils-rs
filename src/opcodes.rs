@@ -20,11 +20,13 @@ extern "C" {
     fn disassemble_init_for_target(dinfo: *const DisassembleInfoRaw);
 }
 
+pub type DisassemblerFunction = Fn(c_ulong, &DisassembleInfo) -> c_ulong;
+
 pub enum DisassembleInfoRaw {}
 
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
-    disassembler: Option<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>>,
+    disassembler: Option<Box<DisassemblerFunction>>,
     pc: u64,
 }
 
@@ -86,10 +88,7 @@ impl DisassembleInfo {
         unsafe { helpers::set_print_address_func(self.info, print_function) }
     }
 
-    pub fn configure_disassembler(
-        &mut self,
-        disassembler: Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>,
-    ) {
+    pub fn configure_disassembler(&mut self, disassembler: Box<DisassemblerFunction>) {
         self.pc = unsafe { helpers::get_disassemble_info_section_vma(self.info) };
         self.disassembler = Some(disassembler)
     }

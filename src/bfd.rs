@@ -9,7 +9,7 @@ use std::ffi::{CStr, CString};
 use Error;
 use helpers::{buffer_asm, buffer_asm_ptr, get_arch, get_mach, get_start_address,
               macro_bfd_big_endian};
-use opcodes::{disassembler, DisassembleInfo};
+use opcodes::{disassembler, DisassembleInfo, DisassemblerFunction};
 use section::{Section, SectionRaw};
 
 extern "C" {
@@ -95,7 +95,7 @@ impl Bfd {
         Ok(Section::from_raw(section))
     }
 
-    pub fn disassembler(&self) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
+    pub fn disassembler(&self) -> Result<Box<DisassemblerFunction>, Error> {
         let arch = unsafe { bfd_get_arch(self.bfd) };
         let big_endian = self.is_big_endian();
         let mach = unsafe { bfd_get_mach(self.bfd) };
@@ -107,7 +107,7 @@ impl Bfd {
         arch: c_uint,
         big_endian: bool,
         mach: c_ulong,
-    ) -> Result<Box<Fn(c_ulong, &DisassembleInfo) -> c_ulong>, Error> {
+    ) -> Result<Box<DisassemblerFunction>, Error> {
         let disassemble = unsafe { disassembler(arch, big_endian, mach, self.bfd) };
         if (disassemble as *const c_uint).is_null() {
             return Err(Error::CommonError(String::from(
