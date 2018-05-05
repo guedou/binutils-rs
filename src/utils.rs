@@ -32,5 +32,5 @@ pub fn disassemble_buffer(
     // Configure the disassemble_info structure
     info.init_buffer(&buffer, bfd, offset);
 
-    return Ok(info);
+    Ok(info)
 }
