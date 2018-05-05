@@ -142,12 +142,12 @@ impl Bfd {
         let list = unsafe { bfd_arch_list() };
         loop {
             let slice = unsafe { std::slice::from_raw_parts(list.offset(index), 32) };
-            for i in 0..32 {
-                if slice[i] == 0 {
+            for item in slice.iter().take(32) {
+                if *item == 0 {
                     stop = true;
                     break;
                 }
-                let arch = unsafe { CStr::from_ptr(slice[i] as *const i8).to_str() };
+                let arch = unsafe { CStr::from_ptr(*item as *const i8).to_str() };
                 match arch {
                     Ok(s) => ret_vec.push(s),
                     Err(_) => ret_vec.push("arch_list() - from_ptr() error !"),
