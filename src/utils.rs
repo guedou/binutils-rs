@@ -19,7 +19,7 @@ pub fn disassemble_buffer(
 
     // Check if the architecture is supported
     if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
-        let error = Error::CommonError(format!("Unsuported architecture ({})!", arch_name));
+        let error = Error::CommonError(format!("Unsupported architecture ({})!", arch_name));
         return Err(error);
     }
 
