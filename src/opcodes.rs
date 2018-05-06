@@ -2,6 +2,7 @@
 // binutils libopcodes bindings - opcodes.rs
 
 use libc::{c_uint, c_ulong};
+use std;
 
 use super::Error;
 use bfd::{Bfd, BfdRaw};
@@ -31,6 +32,14 @@ pub struct DisassembleInfo {
 }
 
 impl DisassembleInfo {
+    pub fn empty() -> DisassembleInfo {
+        DisassembleInfo {
+            info: std::ptr::null(),
+            disassembler: None,
+            pc: 0,
+        }
+    }
+
     pub fn new() -> Result<DisassembleInfo, Error> {
         let new_info = unsafe { helpers::new_disassemble_info() };
         if new_info.is_null() {
@@ -51,6 +60,9 @@ impl DisassembleInfo {
     }
 
     pub fn configure(&self, section: Section, bfd: Bfd) {
+        if self.info.is_null() {
+            return;
+        }
         unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) }
     }
 
@@ -69,6 +81,9 @@ impl DisassembleInfo {
     }
 
     pub fn configure_buffer(&self, arch: c_uint, mach: c_ulong, buffer: &[u8], offset: u64) {
+        if self.info.is_null() {
+            return;
+        }
         unsafe {
             let ptr = buffer.as_ptr();
             let len = buffer.len();
@@ -78,6 +93,9 @@ impl DisassembleInfo {
     }
 
     pub fn init(&self) {
+        if self.info.is_null() {
+            return;
+        }
         unsafe { disassemble_init_for_target(self.info) };
     }
 
@@ -85,10 +103,18 @@ impl DisassembleInfo {
         &self,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     ) {
+        if self.info.is_null() {
+            return;
+        }
         unsafe { helpers::set_print_address_func(self.info, print_function) }
     }
 
     pub fn configure_disassembler(&mut self, disassembler: Box<DisassemblerFunction>) {
+        if self.info.is_null() {
+            self.pc = 0;
+            self.disassembler = None;
+            return;
+        }
         self.pc = unsafe { helpers::get_disassemble_info_section_vma(self.info) };
         self.disassembler = Some(disassembler)
     }
@@ -115,8 +141,31 @@ impl DisassembleInfo {
 
 impl Drop for DisassembleInfo {
     fn drop(&mut self) {
-        unsafe {
-            helpers::free_disassemble_info(self.info);
-        };
+        if !self.info.is_null() {
+            unsafe {
+                helpers::free_disassemble_info(self.info);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_di_empty() {
+        use std;
+        use bfd;
+        use opcodes;
+
+        let mut di = opcodes::DisassembleInfo::empty();
+        assert_eq!(di.info, std::ptr::null());
+
+        let mut bfd = bfd::Bfd::empty();
+        let _ = bfd.set_arch_mach("i386:x86-64");
+        di.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, &[], 0);
+
+        let disassemble_fn = bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1)
+            .unwrap();
+        di.configure_disassembler(disassemble_fn);
     }
 }

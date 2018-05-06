@@ -26,6 +26,9 @@ impl Section {
     }
 
     pub fn get_size(&self) -> c_ulong {
+        if self.section.is_null() {
+            return 0;
+        };
         unsafe { get_section_size(self.section) }
     }
 }

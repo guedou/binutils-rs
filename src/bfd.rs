@@ -127,10 +127,16 @@ impl Bfd {
     }
 
     pub fn get_start_address(&self) -> c_ulong {
+        if self.bfd.is_null() {
+            return 0;
+        }
         unsafe { get_start_address(self.bfd) }
     }
 
     pub fn is_big_endian(&self) -> bool {
+        if self.bfd.is_null() {
+            return false;
+        }
         unsafe { macro_bfd_big_endian(self.bfd) }
     }
 
@@ -140,6 +146,10 @@ impl Bfd {
         let mut stop = false;
 
         let list = unsafe { bfd_arch_list() };
+        if list.is_null() {
+            return ret_vec;
+        }
+
         loop {
             let slice = unsafe { std::slice::from_raw_parts(list.offset(index), 32) };
             for item in slice.iter().take(32) {
@@ -199,6 +209,9 @@ mod tests {
         let bfd = bfd::Bfd::empty();
         assert_eq!(bfd.bfd, std::ptr::null());
         assert_eq!(bfd.arch_mach, (0, 0));
+
+        bfd.get_start_address();
+        bfd.is_big_endian();
     }
 
     #[test]
