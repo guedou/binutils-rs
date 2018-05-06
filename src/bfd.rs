@@ -64,19 +64,22 @@ impl Bfd {
         let filename_cstring = CString::new(filename)?;
         let target_cstring = CString::new(target)?;
 
-        let bfd_file = unsafe { bfd_openr(filename_cstring.as_ptr(), target_cstring.as_ptr()) };
-
-        if bfd_file.is_null() {
+        let bfd = unsafe { bfd_openr(filename_cstring.as_ptr(), target_cstring.as_ptr()) };
+        if bfd.is_null() {
             return Err(bfd_convert_error());
         };
 
         Ok(Bfd {
-            bfd: bfd_file,
+            bfd,
             arch_mach: (0, 0),
         })
     }
 
     pub fn check_format(&self, format: BfdFormat) -> Option<Error> {
+        if self.bfd.is_null() {
+            return Some(Error::BfdError(0, "bfd pointer is null!".to_string()));
+        };
+
         if !unsafe { bfd_check_format(self.bfd, format) } {
             return Some(bfd_convert_error());
         };
@@ -85,6 +88,10 @@ impl Bfd {
     }
 
     pub fn get_section_by_name(&self, section_name: &str) -> Result<Section, Error> {
+        if self.bfd.is_null() {
+            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
+        };
+
         let section_name_cstring = CString::new(section_name)?;
 
         let section = unsafe { bfd_get_section_by_name(self.bfd, section_name_cstring.as_ptr()) };
@@ -96,8 +103,15 @@ impl Bfd {
     }
 
     pub fn disassembler(&self) -> Result<Box<DisassemblerFunction>, Error> {
+        if self.bfd.is_null() {
+            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
+        };
+
         let arch = unsafe { bfd_get_arch(self.bfd) };
-        let big_endian = self.is_big_endian();
+        let big_endian = match self.is_big_endian() {
+            Ok(be) => be,
+            Err(e) => return Err(e),
+        };
         let mach = unsafe { bfd_get_mach(self.bfd) };
         self.raw_disassembler(arch, big_endian, mach)
     }
@@ -110,9 +124,10 @@ impl Bfd {
     ) -> Result<Box<DisassemblerFunction>, Error> {
         let disassemble = unsafe { disassembler(arch, big_endian, mach, self.bfd) };
         if (disassemble as *const c_uint).is_null() {
-            return Err(Error::CommonError(String::from(
-                "Error creating disassembler!",
-            )));
+            return Err(Error::BfdError(
+                0,
+                String::from("Error creating disassembler!"),
+            ));
         };
 
         let disassemble_closure = move |p: c_ulong, di: &DisassembleInfo| -> c_ulong {
@@ -126,18 +141,20 @@ impl Bfd {
         Ok(Box::new(disassemble_closure))
     }
 
-    pub fn get_start_address(&self) -> c_ulong {
+    pub fn get_start_address(&self) -> Result<c_ulong, Error> {
         if self.bfd.is_null() {
-            return 0;
-        }
-        unsafe { get_start_address(self.bfd) }
+            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
+        };
+
+        Ok(unsafe { get_start_address(self.bfd) })
     }
 
-    pub fn is_big_endian(&self) -> bool {
+    pub fn is_big_endian(&self) -> Result<bool, Error> {
         if self.bfd.is_null() {
-            return false;
-        }
-        unsafe { macro_bfd_big_endian(self.bfd) }
+            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
+        };
+
+        Ok(unsafe { macro_bfd_big_endian(self.bfd) })
     }
 
     pub fn arch_list(&self) -> Vec<&str> {
@@ -176,6 +193,9 @@ impl Bfd {
     pub fn set_arch_mach(&mut self, arch: &str) -> Result<(u32, u64), Error> {
         let arch_cstring = CString::new(arch)?;
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
+        if arch_info.is_null() {
+            return Err(Error::BfdError(0, "architecture not found!".to_string()));
+        };
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
         Ok(self.arch_mach)
     }
@@ -185,7 +205,7 @@ fn bfd_convert_error() -> Error {
     let error = unsafe { bfd_get_error() };
     let msg_char = unsafe { bfd_errmsg(error) };
     let msg_str = unsafe { CStr::from_ptr(msg_char) };
-    Error::BfdErr(error, msg_str.to_str().unwrap().to_string())
+    Error::BfdError(error, msg_str.to_str().unwrap().to_string())
 }
 
 #[allow(non_camel_case_types)] // use the same enum names as libbfd
@@ -210,8 +230,14 @@ mod tests {
         assert_eq!(bfd.bfd, std::ptr::null());
         assert_eq!(bfd.arch_mach, (0, 0));
 
-        bfd.get_start_address();
-        bfd.is_big_endian();
+        match bfd.get_start_address() {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        };
+        match bfd.is_big_endian() {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        };
     }
 
     #[test]
@@ -235,7 +261,7 @@ mod tests {
 
         match bfd::Bfd::openr("", "") {
             Ok(_) => assert!(false),
-            Err(Error::BfdErr(_, _)) => assert!(true),
+            Err(Error::BfdError(_, _)) => assert!(true),
             Err(_) => assert!(false),
         };
     }

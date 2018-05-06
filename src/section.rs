@@ -3,6 +3,8 @@
 
 use libc::c_ulong;
 
+use Error;
+
 extern "C" {
     fn get_section_size(section: *const SectionRaw) -> c_ulong;
 }
@@ -11,7 +13,7 @@ pub enum SectionRaw {}
 
 #[derive(Clone, Copy)]
 pub struct Section {
-    section: *const SectionRaw,
+    pub section: *const SectionRaw,
 }
 
 impl Section {
@@ -20,15 +22,17 @@ impl Section {
     }
 
     pub fn from_raw(section_raw: *const SectionRaw) -> Section {
+        // TODO: don't accept a NULL pointer!
         Section {
             section: section_raw,
         }
     }
 
-    pub fn get_size(&self) -> c_ulong {
+    pub fn get_size(&self) -> Result<c_ulong, Error> {
         if self.section.is_null() {
-            return 0;
+            return Err(Error::SectionError("section pointer is null!".to_string()));
         };
-        unsafe { get_section_size(self.section) }
+
+        Ok(unsafe { get_section_size(self.section) })
     }
 }

@@ -47,7 +47,10 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Configure the disassemble_info structure
-    info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset);
+    if let Some(e) = info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset) {
+        println!("configure_buffer() - {}", e);
+        return;
+    };
     info.init();
 
     // Disassemble the buffer
@@ -90,7 +93,13 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Configure the disassemble_info structure
-    info.init_buffer(&buffer, bfd, offset);
+    match info.init_buffer(&buffer, bfd, offset) {
+        None => (),
+        Some(e) => {
+            println!("init_buffer() - {}", e);
+            return;
+        }
+    };
 
     // Disassemble the buffer
     loop {
@@ -99,7 +108,7 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
             Some(i) => match i {
                 Ok(i) => i,
                 Err(e) => {
-                    println!("{}", e);
+                    println!("disassemble() - {}", e);
                     break;
                 }
             },
@@ -127,7 +136,7 @@ fn test_buffer_utils(arch_name: &str, buffer: Vec<u8>, offset: u64) {
             Some(i) => match i {
                 Ok(i) => i,
                 Err(e) => {
-                    println!("{}", e);
+                    println!("disassemble() - {}", e);
                     break;
                 }
             },

@@ -16,7 +16,8 @@ use std::fmt;
 // Specific errors
 #[derive(Debug)]
 pub enum Error {
-    BfdErr(u32, String),
+    BfdError(u32, String),
+    DisassembleInfoError(String),
     SectionError(String),
     CommonError(String),
     NulError(std::ffi::NulError),
@@ -26,7 +27,8 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::BfdErr(tag, ref msg) => write!(f, "{} ({})", msg, tag),
+            Error::BfdError(tag, ref msg) => write!(f, "{} ({})", msg, tag),
+            Error::DisassembleInfoError(ref msg) => write!(f, "{}", msg),
             Error::SectionError(ref section) => write!(f, "Can't find '{}' section!", section),
             Error::CommonError(ref msg) => write!(f, "{}", msg),
             Error::NulError(ref error) => write!(f, "{}", error),

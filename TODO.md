@@ -3,12 +3,14 @@
 [ ] check binutils tarball checksum
 [x] use clippy
 [x] use features to select architectures
-[ ] improve the README: examples and TARGETS
+[x] improve the README: examples and TARGETS
   [x] write a more compact example using utils::disassemble_buffer
+[ ] errors should use &str instead of String
 [ ] look for incorrect pointers usage!
-  [ ] DisassembleInfo methods should return errors -> DisassembleInfoError
   [ ] Bfd methods should return errors -> BfdError
   [ ] Section methods should return errors -> SectionError
+  [ ] DisassembleInfo methods should return errors -> DisassembleInfoError
+  [ ] helpers.c must not use NULL pointers!
 
 ## Wish list / Roadmap
 

@@ -44,11 +44,12 @@ void show_buffer(struct disassemble_info *info) {
 
 /*** disassemble_info structure helpers ***/
 
-struct disassemble_info *new_disassemble_info() {
+disassemble_info *new_disassemble_info() {
     /* Return a new structure */
     struct disassemble_info *info = malloc (sizeof(struct disassemble_info));
     return info;
 }
+
 void configure_disassemble_info(struct disassemble_info *info, asection *section, bfd *bfdFile) {
     /* Construct and configure the disassembler_info class using stdout */
   
@@ -60,6 +61,7 @@ void configure_disassemble_info(struct disassemble_info *info, asection *section
     info->buffer_vma = section->vma;
     info->buffer_length = section->size;
 
+    // TODO: return bfd_boolean
     bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
 
@@ -78,15 +80,23 @@ void set_print_address_func(struct disassemble_info *info, print_address_func pr
     info->print_address_func = print_function;
 }
 
-void set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int length, bfd_vma vma) {
+asection* set_buffer(struct disassemble_info *info, bfd_byte* buffer, unsigned int length, bfd_vma vma) {
     /* Configure the buffet that will be disassembled */
     info->buffer = buffer;
     info->buffer_length = length;
     info->buffer_vma = vma;
 
-    asection *section = malloc(sizeof(asection));
-    info->section = section;
-    info->section->vma = vma;
+    asection *section = (asection*) malloc(sizeof(asection));
+    if (section) {
+        info->section = section;
+        info->section->vma = vma;
+    }
+
+    return (asection*) section;
+}
+
+asection* get_disassemble_info_section(struct disassemble_info *info) {
+  return info->section;
 }
 
 unsigned long get_disassemble_info_section_vma(struct disassemble_info *info) {
@@ -95,7 +105,8 @@ unsigned long get_disassemble_info_section_vma(struct disassemble_info *info) {
 
 void free_disassemble_info(struct disassemble_info *info) {
   /* Free the structure and allocated variable */
-  free(info->section);
+  if (info->section)
+      free(info->section);
   free(info);
 }
 

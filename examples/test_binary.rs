@@ -47,8 +47,7 @@ fn test_ls(max_instructions: Option<u8>) {
         }
     };
 
-    let error = bfd.check_format(bfd::BfdFormat::bfd_object);
-    match error {
+    match bfd.check_format(bfd::BfdFormat::bfd_object) {
         None => (),
         Some(e) => {
             println!("Error with check_format() - {}", e);
@@ -84,12 +83,31 @@ fn test_ls(max_instructions: Option<u8>) {
     };
 
     // Configure the disassemble_info structure
-    info.configure(section, bfd);
+    match info.configure(section, bfd) {
+        None => (),
+        Some(e) => {
+            println!("Error configure() - {}", e);
+            return;
+        }
+    };
     info.set_print_address_func(change_address);
     info.init();
 
     // Disassemble the binary
-    let mut pc = bfd.get_start_address();
+    let mut pc = match bfd.get_start_address() {
+        Ok(a) => a,
+        Err(e) => {
+            println!("Error with get_start_address() - {}", e);
+            return;
+        }
+    };
+    let section_size = match section.get_size() {
+        Ok(a) => a,
+        Err(e) => {
+            println!("Error with get_size() - {}", e);
+            return;
+        }
+    };
     let mut counter = 0;
     loop {
         let length = disassemble(pc, &info);
@@ -106,7 +124,7 @@ fn test_ls(max_instructions: Option<u8>) {
         pc += length;
         counter += 1;
 
-        if !(length > 0 && pc <= section.get_size()) {
+        if !(length > 0 && pc <= section_size) {
             break;
         }
 

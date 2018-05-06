@@ -46,9 +46,13 @@ extern "C" {
         buffer: *const c_uchar,
         length: c_uint,
         vma: c_ulong,
-    );
+    ) -> *const SectionRaw;
 
     pub(crate) fn free_disassemble_info(info: *const DisassembleInfoRaw);
+
+    pub(crate) fn get_disassemble_info_section(
+        info: *const DisassembleInfoRaw,
+    ) -> *const DisassembleInfoRaw;
 
     pub(crate) fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
 }

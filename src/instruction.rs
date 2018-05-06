@@ -65,7 +65,10 @@ impl<'a> Instruction<'a> {
         buffer: &[u8],
         offset: u64,
     ) -> Instruction<'a> {
-        info.init_buffer(buffer, bfd, offset);
+        match info.init_buffer(buffer, bfd, offset) {
+            None => (),
+            Some(e) => return Instruction::empty_with_error(Some(e)),
+        };
 
         let instr_result = match info.disassemble() {
             Some(i) => i,
