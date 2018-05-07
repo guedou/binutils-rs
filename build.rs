@@ -94,14 +94,13 @@ fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, target
     }
 
     // Verify the SHA256 hash
-    if hash_file(&directory_filename, sha256sum) {
+    if !hash_file(&directory_filename, sha256sum) {
         panic!(
             "\n\n  \
              Incorrect hash value for {} !\n\n",
             filename
         );
     }
-
 
     // Check if the tarball exists after calling curl
     if !path::Path::new(&directory_filename).exists() {
