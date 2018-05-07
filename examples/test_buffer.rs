@@ -47,9 +47,12 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Configure the disassemble_info structure
-    if let Some(e) = info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset) {
-        println!("configure_buffer() - {}", e);
-        return;
+    match info.configure_buffer(bfd_arch_mach.0, bfd_arch_mach.1, &buffer, offset) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("configure_buffer() - {}", e);
+            return;
+        }
     };
     info.init();
 
@@ -94,8 +97,8 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
 
     // Configure the disassemble_info structure
     match info.init_buffer(&buffer, bfd, offset) {
-        None => (),
-        Some(e) => {
+        Ok(_) => (),
+        Err(e) => {
             println!("init_buffer() - {}", e);
             return;
         }

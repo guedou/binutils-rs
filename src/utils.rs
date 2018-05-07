@@ -30,10 +30,7 @@ pub fn disassemble_buffer(
     let mut info = DisassembleInfo::new()?;
 
     // Configure the disassemble_info structure
-    match info.init_buffer(buffer, bfd, offset) {
-        None => (),
-        Some(e) => return Err(e),
-    };
+    info.init_buffer(buffer, bfd, offset)?;
 
     Ok(info)
 }

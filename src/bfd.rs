@@ -75,16 +75,16 @@ impl Bfd {
         })
     }
 
-    pub fn check_format(&self, format: BfdFormat) -> Option<Error> {
+    pub fn check_format(&self, format: BfdFormat) -> Result<(), Error> {
         if self.bfd.is_null() {
-            return Some(Error::BfdError(0, "bfd pointer is null!".to_string()));
+            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
         };
 
         if !unsafe { bfd_check_format(self.bfd, format) } {
-            return Some(bfd_convert_error());
+            return Err(bfd_convert_error());
         };
 
-        None
+        Ok(())
     }
 
     pub fn get_section_by_name(&self, section_name: &str) -> Result<Section, Error> {

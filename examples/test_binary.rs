@@ -48,8 +48,8 @@ fn test_ls(max_instructions: Option<u8>) {
     };
 
     match bfd.check_format(bfd::BfdFormat::bfd_object) {
-        None => (),
-        Some(e) => {
+        Ok(_) => (),
+        Err(e) => {
             println!("Error with check_format() - {}", e);
             return;
         }
@@ -84,8 +84,8 @@ fn test_ls(max_instructions: Option<u8>) {
 
     // Configure the disassemble_info structure
     match info.configure(section, bfd) {
-        None => (),
-        Some(e) => {
+        Ok(_) => (),
+        Err(e) => {
             println!("Error configure() - {}", e);
             return;
         }

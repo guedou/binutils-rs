@@ -59,43 +59,38 @@ impl DisassembleInfo {
         self.info
     }
 
-    pub fn configure(&self, section: Section, bfd: Bfd) -> Option<Error> {
+    pub fn configure(&self, section: Section, bfd: Bfd) -> Result<(), Error> {
         if self.info.is_null() {
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "info pointer is null!".to_string(),
             ));
         }
         if section.raw().is_null() {
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "section pointer is null!".to_string(),
             ));
         }
         if bfd.raw().is_null() {
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "bfd pointer is null!".to_string(),
             ));
         }
 
         unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) };
-        None
+        Ok(())
     }
 
-    pub fn init_buffer(&mut self, buffer: &[u8], bfd: Bfd, offset: u64) -> Option<Error> {
+    pub fn init_buffer(&mut self, buffer: &[u8], bfd: Bfd, offset: u64) -> Result<(), Error> {
         let disassemble_fn = match bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1) {
             Ok(f) => f,
-            Err(e) => return Some(e),
+            Err(e) => return Err(e),
         };
 
-        if let Some(error) = self.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, buffer, offset)
-        {
-            return Some(error);
-        };
-        if let Some(error) = self.configure_disassembler(disassemble_fn) {
-            return Some(error);
-        };
+        self.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, buffer, offset)?;
+        self.configure_disassembler(disassemble_fn)?;
         self.init();
 
-        None
+        Ok(())
     }
 
     pub fn configure_buffer(
@@ -104,9 +99,9 @@ impl DisassembleInfo {
         mach: c_ulong,
         buffer: &[u8],
         offset: u64,
-    ) -> Option<Error> {
+    ) -> Result<(), Error> {
         if self.info.is_null() {
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "info pointer is null!".to_string(),
             ));
         }
@@ -116,12 +111,12 @@ impl DisassembleInfo {
             helpers::configure_disassemble_info_buffer(self.info, arch, mach);
 
             if helpers::set_buffer(self.info, ptr, len as u32, offset).is_null() {
-                return Some(Error::DisassembleInfoError(
+                return Err(Error::DisassembleInfoError(
                     "set_buffer() malloc error!".to_string(),
                 ));
             }
         }
-        None
+        Ok(())
     }
 
     pub fn init(&self) {
@@ -144,17 +139,17 @@ impl DisassembleInfo {
     pub fn configure_disassembler(
         &mut self,
         disassembler: Box<DisassemblerFunction>,
-    ) -> Option<Error> {
+    ) -> Result<(), Error> {
         if self.info.is_null() {
             self.pc = 0;
             self.disassembler = None;
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "info pointer is null!".to_string(),
             ));
         }
 
         if unsafe { helpers::get_disassemble_info_section(self.info) }.is_null() {
-            return Some(Error::DisassembleInfoError(
+            return Err(Error::DisassembleInfoError(
                 "section pointer is null!".to_string(),
             ));
         }
@@ -162,7 +157,7 @@ impl DisassembleInfo {
         self.pc = unsafe { helpers::get_disassemble_info_section_vma(self.info) };
         self.disassembler = Some(disassembler);
 
-        None
+        Ok(())
     }
 
     pub fn disassemble<'a>(&mut self) -> Option<Result<Instruction<'a>, Error>> {
@@ -209,8 +204,8 @@ mod tests {
 
         let mut bfd = bfd::Bfd::empty();
         match di.init_buffer(&[0x90], bfd, 0) {
-            None => assert!(false),
-            Some(_) => assert!(true),
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
         };
 
         let _ = bfd.set_arch_mach("i386:x86-64");
@@ -234,14 +229,14 @@ mod tests {
 
         let section = section::Section::from_raw(0 as *const section::SectionRaw);
         match di.configure(section, bfd::Bfd::empty()) {
-            None => assert!(false),
-            Some(_) => assert!(true),
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
         }
 
         let section = section::Section::from_raw(0x2807 as *const section::SectionRaw);
         match di.configure(section, bfd::Bfd::empty()) {
-            None => assert!(false),
-            Some(_) => assert!(true),
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
         }
 
         let mut bfd = bfd::Bfd::empty();
