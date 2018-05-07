@@ -3,10 +3,15 @@
 
 use std::env;
 use std::ffi;
+use std::fs::File;
+use std::io::Read;
 use std::path;
 use std::process;
 
 extern crate cc;
+
+extern crate sha2;
+use sha2::{Sha256, Digest};
 
 fn execute_command(command: &str, arguments: Vec<&str>) {
     // Execute a command, and panic on any error
@@ -36,13 +41,35 @@ fn change_dir(directory: &str) {
     if !env::set_current_dir(directory).is_ok() {
         panic!(
             "\n\n  \
-             Can't change dir to ;{}' !\n\n",
+             Can't change dir to {}' !\n\n",
             directory
         );
     }
 }
 
-fn build_binutils(version: &str, output_directory: &str, targets: &str) {
+fn hash_file(filename: &str, hash_value :&str) -> bool {
+    // Compute a SHA256 and return true if correct
+    let mut f = File::open(filename).expect("file not found");
+    let mut hasher = Sha256::default();
+
+    loop {
+        let mut buffer = [0; 256];
+
+        let len = match f.read(&mut buffer[..]) {
+            Err(_) => return false,
+            Ok(len) => len,
+        };
+        if len == 0 {
+            break;
+        };
+
+        hasher.input(&buffer[0 .. len]);
+    };
+
+    return format!("{:x}", hasher.result()) == hash_value;
+}
+
+fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, targets: &str) {
     // Build binutils from source
 
     let binutils_name = format!("binutils-{}", version);
@@ -66,7 +93,15 @@ fn build_binutils(version: &str, output_directory: &str, targets: &str) {
         );
     }
 
-    // GV: verify checksum
+    // Verify the SHA256 hash
+    if hash_file(&directory_filename, sha256sum) {
+        panic!(
+            "\n\n  \
+             Incorrect hash value for {} !\n\n",
+            filename
+        );
+    }
+
 
     // Check if the tarball exists after calling curl
     if !path::Path::new(&directory_filename).exists() {
@@ -113,8 +148,8 @@ fn build_binutils(version: &str, output_directory: &str, targets: &str) {
 }
 
 fn main() {
-    //let version = ("2.29.1", "0d9d2bbf71e17903f26a676e7fba7c200e581c84b8f2f43e72d875d0e638771c");
     let version = "2.29.1";
+    let sha256 = "0d9d2bbf71e17903f26a676e7fba7c200e581c84b8f2f43e72d875d0e638771c";
 
     // Extract the out directory from the env variable
     let out_dir = match env::var_os("OUT_DIR") {
@@ -143,7 +178,7 @@ fn main() {
     let current_dir = env::current_dir().unwrap();
 
     // Build binutils
-    build_binutils(version, out_directory, targets);
+    build_binutils(version, sha256, out_directory, targets);
 
     // Build our C helpers
     change_dir(current_dir.to_str().unwrap());

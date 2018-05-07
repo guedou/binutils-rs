@@ -1,6 +1,6 @@
 ## Before releasing 0.1.0
 
-[ ] check binutils tarball checksum
+[x] check binutils tarball checksum
 [x] use clippy
 [x] use features to select architectures
 [x] improve the README: examples and TARGETS
@@ -11,6 +11,7 @@
   [ ] Section methods should return errors -> SectionError
   [ ] DisassembleInfo methods should return errors -> DisassembleInfoError
   [ ] helpers.c must not use NULL pointers!
+[ ] the iterator API example does not print the first instruction!
 
 ## Wish list / Roadmap
 
