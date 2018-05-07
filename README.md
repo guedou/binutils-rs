@@ -51,6 +51,9 @@ loop {
 }
 ```
 
+Bigger examples are located in the [examples/](examples) directory, and be used
+with `cargo run --example`.
+
 ## Resources
 
 Examples in C and archived documentations are available in the
