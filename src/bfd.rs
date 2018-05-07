@@ -99,7 +99,7 @@ impl Bfd {
             return Err(Error::SectionError(section_name.to_string()));
         };
 
-        Ok(Section::from_raw(section))
+        Ok(Section::from_raw(section)?)
     }
 
     pub fn disassembler(&self) -> Result<Box<DisassemblerFunction>, Error> {

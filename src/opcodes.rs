@@ -236,14 +236,14 @@ mod tests {
         let di = opcodes::DisassembleInfo::new().unwrap();
         assert_ne!(di.info, std::ptr::null());
 
-        let section = section::Section::from_raw(0 as *const section::SectionRaw);
+        let section = section::Section::null();
         match di.configure(section, bfd::Bfd::empty()) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
 
         let section = section::Section::from_raw(0x2807 as *const section::SectionRaw);
-        match di.configure(section, bfd::Bfd::empty()) {
+        match di.configure(section.unwrap(), bfd::Bfd::empty()) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
