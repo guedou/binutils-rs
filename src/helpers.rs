@@ -28,7 +28,7 @@ extern "C" {
         info: *const DisassembleInfoRaw,
         section: *const SectionRaw,
         bfd: *const BfdRaw,
-    );
+    ) -> bool;
 
     pub(crate) fn configure_disassemble_info_buffer(
         info: *const DisassembleInfoRaw,

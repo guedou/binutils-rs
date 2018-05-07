@@ -90,7 +90,13 @@ fn test_ls(max_instructions: Option<u8>) {
             return;
         }
     };
-    info.set_print_address_func(change_address);
+    match info.set_print_address_func(change_address) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error set_print_address_func() - {}", e);
+            return;
+        }
+    };
     info.init();
 
     // Disassemble the binary

@@ -1,17 +1,12 @@
 ## Before releasing 0.1.0
 
-[x] check binutils tarball checksum
-[x] use clippy
-[x] use features to select architectures
-[x] improve the README: examples and TARGETS
-  [x] write a more compact example using utils::disassemble_buffer
-[ ] errors should use &str instead of String
 [ ] look for incorrect pointers usage!
   [ ] Bfd methods should return errors -> BfdError
   [ ] Section methods should return errors -> SectionError
   [ ] DisassembleInfo methods should return errors -> DisassembleInfoError
-  [ ] helpers.c must not use NULL pointers!
+  [x] helpers.c must not use NULL pointers!
 [ ] the iterator API example does not print the first instruction!
+[ ] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
 
 ## Wish list / Roadmap
 

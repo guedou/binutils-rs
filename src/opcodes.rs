@@ -76,7 +76,12 @@ impl DisassembleInfo {
             ));
         }
 
-        unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) };
+        if !unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) } {
+            return Err(Error::DisassembleInfoError(
+                "Error while calling configure_disassemble_info() !".to_string(),
+            ));
+        }
+
         Ok(())
     }
 
@@ -129,11 +134,15 @@ impl DisassembleInfo {
     pub fn set_print_address_func(
         &self,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
-    ) {
+    ) -> Result<(), Error> {
         if self.info.is_null() {
-            return;
+            return Err(Error::DisassembleInfoError(
+                "info pointer is null!".to_string(),
+            ));
         }
         unsafe { helpers::set_print_address_func(self.info, print_function) }
+
+        Ok(())
     }
 
     pub fn configure_disassembler(

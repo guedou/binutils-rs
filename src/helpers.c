@@ -11,6 +11,7 @@
 #include <bfd.h>
 #include <dis-asm.h>
 
+
 // Silly macro that helps removing the unused warnings
 #define UNUSED_VARIABLE(id) id=id
 
@@ -20,7 +21,7 @@
 #define BUFFER_SIZE 64
 char buffer_asm[BUFFER_SIZE];
 char *buffer_asm_ptr = buffer_asm;
-void copy_buffer(void * useless, const char* format, ...) {
+void copy_buffer(void* useless, const char* format, ...) {
     /* Construct the final opcode into buffer_asm */
     UNUSED_VARIABLE(useless);
 
@@ -44,13 +45,13 @@ void show_buffer(struct disassemble_info *info) {
 
 /*** disassemble_info structure helpers ***/
 
-disassemble_info *new_disassemble_info() {
+disassemble_info* new_disassemble_info() {
     /* Return a new structure */
     struct disassemble_info *info = malloc (sizeof(struct disassemble_info));
     return info;
 }
 
-void configure_disassemble_info(struct disassemble_info *info, asection *section, bfd *bfdFile) {
+bfd_boolean configure_disassemble_info(struct disassemble_info *info, asection *section, bfd *bfdFile) {
     /* Construct and configure the disassembler_info class using stdout */
   
     init_disassemble_info (info, stdout, (fprintf_ftype) copy_buffer);
@@ -61,10 +62,8 @@ void configure_disassemble_info(struct disassemble_info *info, asection *section
     info->buffer_vma = section->vma;
     info->buffer_length = section->size;
 
-    // TODO: return bfd_boolean
-    bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
+    return bfd_malloc_and_get_section (bfdFile, section, &info->buffer);
 }
-
 
 void configure_disassemble_info_buffer(struct disassemble_info *info, enum bfd_architecture arch, unsigned long mach) {
     /* A variant of configure_disassemble_info() for buffers */
