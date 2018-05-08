@@ -20,7 +20,7 @@ pub enum Error {
     DisassembleInfoError(String),
     SectionError(String),
     CommonError(String),
-    NulError(std::ffi::NulError),
+    NulError(String),
     Utf8Error(std::str::Utf8Error),
     NullPointerError(String),
 }
@@ -42,7 +42,14 @@ impl fmt::Display for Error {
 // Needed to use the ? operator on Cstring::new()
 impl From<std::ffi::NulError> for Error {
     fn from(error: std::ffi::NulError) -> Self {
-        Error::NulError(error)
+        Error::NulError(format!("{}", error))
+    }
+}
+
+// Needed to use the ? operator on Cstring::from_bytes_with_nul()
+impl From<std::ffi::FromBytesWithNulError> for Error {
+    fn from(error: std::ffi::FromBytesWithNulError) -> Self {
+        Error::NulError(format!("{}", error))
     }
 }
 

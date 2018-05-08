@@ -1,6 +1,7 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - instruction.rs
 
+use std::cmp;
 use std::ffi::CStr;
 use std::fmt;
 
@@ -14,7 +15,6 @@ pub struct Instruction<'a> {
     pub length: u64,
     pub offset: u64,
     pub opcode: &'a str,
-    //bytes: Vec<u8>,
     info: Option<&'a mut DisassembleInfo>,
     pub error: Option<Error>,
 }
@@ -35,15 +35,15 @@ pub fn get_opcode<'a>() -> Result<&'a str, Error> {
 
     // Extract the instruction string
     let opcode_raw =
-        unsafe { CStr::from_bytes_with_nul_unchecked(&helpers::buffer_asm[0..index + 1]) };
-    Ok(opcode_raw.to_str()?)
+        unsafe { CStr::from_bytes_with_nul(&helpers::buffer_asm[0..cmp::min(index, 63) + 1]) };
+    Ok(opcode_raw?.to_str()?)
 }
 
 pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, Error> {
     Ok(Instruction {
         offset,
         length,
-        opcode: get_opcode().unwrap(),
+        opcode: get_opcode()?,
         info: None,
         error: None,
     })
@@ -84,7 +84,16 @@ impl<'a> Iterator for Instruction<'a> {
     type Item = Instruction<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let info = self.info.take().unwrap(); // Temporarily remove info from the structure
+        // Temporarily remove info from the structure
+        let info = match self.info.take() {
+            Some(i) => i,
+            None => {
+                return Some(Instruction::empty_with_error(Some(
+                    Error::DisassembleInfoError("empty".to_string()),
+                )))
+            }
+        };
+
         let i = info.disassemble();
         match i {
             Some(r) => match r {
