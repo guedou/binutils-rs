@@ -6,8 +6,9 @@ authors = ["Guillaume Valadon <guillaume@valadon.net>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/guedou/binutils-rs/"
-description = "A library that ease interacting with the binutils disassembly engine"
-keywords = ["disassemble"]
+description = "A Rust library that ease interacting with the binutils disassembly engine"
+keywords = ["ffi", "binutils", disassemble", "reverse"]
+categories = ["api-bindings", "external-ffi-bindings"]
 exclude = ["resources/*"]
 
 [dependencies]
