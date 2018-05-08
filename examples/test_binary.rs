@@ -97,7 +97,13 @@ fn test_ls(max_instructions: Option<u8>) {
             return;
         }
     };
-    info.init();
+    match info.init() {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error init() - {}", e);
+            return;
+        }
+    };
 
     // Disassemble the binary
     let mut pc = match bfd.get_start_address() {

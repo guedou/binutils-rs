@@ -1,12 +1,15 @@
 ## Before releasing 0.1.0
 
-[ ] look for incorrect pointers usage!
-  [ ] Bfd methods should return errors -> BfdError
-  [ ] Section methods should return errors -> SectionError
-  [ ] DisassembleInfo methods should return errors -> DisassembleInfoError
-  [x] helpers.c must not use NULL pointers!
 [ ] the iterator API example does not print the first instruction!
-[ ] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
+[x] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
+[ ] is it possible to have a specific Bfd::empty() implementation ?
+[ ] function that wraps checking for null pointers:
+    fn xxx(ptr, message) {
+      xxx.is_null()
+      Ok()
+      Err()
+    }
+[ ] test_ls() should return Result<(), Error>
 
 ## Wish list / Roadmap
 

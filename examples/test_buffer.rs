@@ -54,7 +54,13 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
             return;
         }
     };
-    info.init();
+    match info.init() {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error init() - {}", e);
+            return;
+        }
+    };
 
     // Disassemble the buffer
     let mut pc = offset;

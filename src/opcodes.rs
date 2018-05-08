@@ -93,7 +93,7 @@ impl DisassembleInfo {
 
         self.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, buffer, offset)?;
         self.configure_disassembler(disassemble_fn)?;
-        self.init();
+        self.init()?;
 
         Ok(())
     }
@@ -112,7 +112,17 @@ impl DisassembleInfo {
         }
         unsafe {
             let ptr = buffer.as_ptr();
+            if ptr.is_null() {
+                return Err(Error::DisassembleInfoError(
+                    "buffer pointer is null!".to_string(),
+                ));
+            };
             let len = buffer.len();
+            if len == 0 {
+                return Err(Error::DisassembleInfoError(
+                    "buffer lenght is 0!".to_string(),
+                ));
+            };
             helpers::configure_disassemble_info_buffer(self.info, arch, mach);
 
             if helpers::set_buffer(self.info, ptr, len as u32, offset).is_null() {
@@ -124,11 +134,14 @@ impl DisassembleInfo {
         Ok(())
     }
 
-    pub fn init(&self) {
+    pub fn init(&self) -> Result<(), Error> {
         if self.info.is_null() {
-            return;
+            return Err(Error::DisassembleInfoError(
+                "info pointer is null!".to_string(),
+            ));
         }
         unsafe { disassemble_init_for_target(self.info) };
+        Ok(())
     }
 
     pub fn set_print_address_func(
