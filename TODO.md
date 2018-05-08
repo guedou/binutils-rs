@@ -1,8 +1,5 @@
 ## Before releasing 0.1.0
 
-[x] look for possible errors in get_opcode and get_instruction
-[x] remove unwrap() calls from src/
-[ ] README: write that binutils is built from source an statically linked
 [ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap
