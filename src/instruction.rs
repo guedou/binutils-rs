@@ -70,18 +70,13 @@ impl<'a> Instruction<'a> {
             Err(e) => return Instruction::empty_with_error(Some(e)),
         };
 
-        let instr_result = match info.disassemble() {
-            Some(i) => i,
-            None => return Instruction::empty_with_error(None), // No more instruction to disassemble
-        };
-
-        let mut instruction = match instr_result {
-            Ok(i) => i,
-            Err(e) => return Instruction::empty_with_error(Some(e)),
-        };
-
-        instruction.info = Some(info);
-        instruction
+        Instruction {
+            offset: 0,
+            length: 0,
+            opcode: "",
+            info: Some(info),
+            error: None,
+        }
     }
 }
 

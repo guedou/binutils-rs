@@ -1,11 +1,12 @@
 ## Before releasing 0.1.0
 
-[ ] the iterator API example does not print the first instruction!
+[x] the iterator API example does not print the first instruction!
 [x] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
 [ ] is it possible to have a specific Bfd::empty() implementation ?
 [ ] test_ls() should return Result<(), Error>
 [ ] convert check_null_pointer to a macro to add file and line numbers to the
     Error
+[ ] look for possible errors in get_ocpode and get_instruction
 
 ## Wish list / Roadmap
 

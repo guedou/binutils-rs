@@ -11,7 +11,7 @@ use std::process;
 extern crate cc;
 
 extern crate sha2;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 fn execute_command(command: &str, arguments: Vec<&str>) {
     // Execute a command, and panic on any error
@@ -47,10 +47,10 @@ fn change_dir(directory: &str) {
     }
 }
 
-fn hash_file(filename: &str, hash_value :&str) -> bool {
+fn hash_file(filename: &str, hash_value: &str) -> bool {
     // Compute a SHA256 and return true if correct
     let mut f = File::open(filename).expect("file not found");
-    let mut hasher = Sha256::default();
+    let mut hasher = Sha256::new();
 
     loop {
         let mut buffer = [0; 256];
@@ -61,10 +61,10 @@ fn hash_file(filename: &str, hash_value :&str) -> bool {
         };
         if len == 0 {
             break;
-        };
+        }
 
-        hasher.input(&buffer[0 .. len]);
-    };
+        hasher.input(&buffer[0..len]);
+    }
 
     return format!("{:x}", hasher.result()) == hash_value;
 }
