@@ -195,8 +195,11 @@ impl Bfd {
 fn bfd_convert_error() -> Error {
     let error = unsafe { bfd_get_error() };
     let msg_char = unsafe { bfd_errmsg(error) };
-    let msg_str = unsafe { CStr::from_ptr(msg_char) };
-    Error::BfdError(error, msg_str.to_str().unwrap().to_string())
+    let msg_str = match unsafe { CStr::from_ptr(msg_char).to_str() } {
+        Ok(s) => s,
+        Err(e) => return Error::Utf8Error(e),
+    };
+    Error::BfdError(error, msg_str.to_string())
 }
 
 #[allow(non_camel_case_types)] // use the same enum names as libbfd

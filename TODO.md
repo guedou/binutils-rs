@@ -1,20 +1,18 @@
 ## Before releasing 0.1.0
 
-[x] the iterator API example does not print the first instruction!
-[x] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
-[ ] is it possible to have a specific Bfd::empty() implementation ?
-[ ] test_ls() should return Result<(), Error>
-[ ] convert check_null_pointer to a macro to add file and line numbers to the
-    Error
-[ ] look for possible errors in get_ocpode and get_instruction
+[x] look for possible errors in get_opcode and get_instruction
+[x] remove unwrap() calls from src/
+[ ] README: write that binutils is built from source an statically linked
+[ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap
 
-[ ] add Travis support: test and rustfmt
+[ ] convert check_null_pointer() to a macro to add file and line numbers to the Error
 [ ] write more tests
+[ ] add Travis support: test and rustfmt
 [ ] fuzz the disassembler
 [ ] generate mach.rs with build.rs
-[ ] use info->stop_vma ?
-[ ] use the error_chain crate
 [ ] generate documentation from comments
+[ ] use the error_chain crate
+[ ] investigate info->stop_vma
 [ ] rewrite copy_buffer in Rust
