@@ -9,6 +9,7 @@ use bfd::{Bfd, BfdRaw};
 use helpers;
 use instruction::{get_instruction, Instruction};
 use section::Section;
+use utils;
 
 extern "C" {
     pub fn disassembler(
@@ -43,7 +44,7 @@ impl DisassembleInfo {
     pub fn new() -> Result<DisassembleInfo, Error> {
         let new_info = unsafe { helpers::new_disassemble_info() };
         if new_info.is_null() {
-            return Err(Error::CommonError(String::from(
+            return Err(Error::DisassembleInfoError(String::from(
                 "Error while getting disassemble_info!",
             )));
         }
@@ -60,21 +61,9 @@ impl DisassembleInfo {
     }
 
     pub fn configure(&self, section: Section, bfd: Bfd) -> Result<(), Error> {
-        if self.info.is_null() {
-            return Err(Error::DisassembleInfoError(
-                "info pointer is null!".to_string(),
-            ));
-        }
-        if section.raw().is_null() {
-            return Err(Error::DisassembleInfoError(
-                "section pointer is null!".to_string(),
-            ));
-        }
-        if bfd.raw().is_null() {
-            return Err(Error::DisassembleInfoError(
-                "bfd pointer is null!".to_string(),
-            ));
-        }
+        utils::check_null_pointer(self.info, "info pointer is null!")?;
+        utils::check_null_pointer(self.raw(), "section pointer is null!")?;
+        utils::check_null_pointer(bfd.raw(), "bfd pointer is null!")?;
 
         if !unsafe { helpers::configure_disassemble_info(self.info, section.raw(), bfd.raw()) } {
             return Err(Error::DisassembleInfoError(
@@ -105,24 +94,19 @@ impl DisassembleInfo {
         buffer: &[u8],
         offset: u64,
     ) -> Result<(), Error> {
-        if self.info.is_null() {
-            return Err(Error::DisassembleInfoError(
-                "info pointer is null!".to_string(),
-            ));
-        }
+        utils::check_null_pointer(self.info, "info pointer is null!")?;
+
         unsafe {
             let ptr = buffer.as_ptr();
-            if ptr.is_null() {
-                return Err(Error::DisassembleInfoError(
-                    "buffer pointer is null!".to_string(),
-                ));
-            };
+            utils::check_null_pointer(ptr, "buffer pointer is null!")?;
+
             let len = buffer.len();
             if len == 0 {
                 return Err(Error::DisassembleInfoError(
-                    "buffer lenght is 0!".to_string(),
+                    "buffer length is 0!".to_string(),
                 ));
             };
+
             helpers::configure_disassemble_info_buffer(self.info, arch, mach);
 
             if helpers::set_buffer(self.info, ptr, len as u32, offset).is_null() {
@@ -135,11 +119,8 @@ impl DisassembleInfo {
     }
 
     pub fn init(&self) -> Result<(), Error> {
-        if self.info.is_null() {
-            return Err(Error::DisassembleInfoError(
-                "info pointer is null!".to_string(),
-            ));
-        }
+        utils::check_null_pointer(self.info, "info pointer is null!")?;
+
         unsafe { disassemble_init_for_target(self.info) };
         Ok(())
     }
@@ -148,11 +129,7 @@ impl DisassembleInfo {
         &self,
         print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
     ) -> Result<(), Error> {
-        if self.info.is_null() {
-            return Err(Error::DisassembleInfoError(
-                "info pointer is null!".to_string(),
-            ));
-        }
+        utils::check_null_pointer(self.info, "info pointer is null!")?;
         unsafe { helpers::set_print_address_func(self.info, print_function) }
 
         Ok(())
@@ -170,11 +147,8 @@ impl DisassembleInfo {
             ));
         }
 
-        if unsafe { helpers::get_disassemble_info_section(self.info) }.is_null() {
-            return Err(Error::DisassembleInfoError(
-                "section pointer is null!".to_string(),
-            ));
-        }
+        let section_raw = unsafe { helpers::get_disassemble_info_section(self.info) };
+        utils::check_null_pointer(section_raw, "section pointer is null!")?;
 
         self.pc = unsafe { helpers::get_disassemble_info_section_vma(self.info) };
         self.disassembler = Some(disassembler);

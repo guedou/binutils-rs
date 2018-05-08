@@ -22,6 +22,7 @@ pub enum Error {
     CommonError(String),
     NulError(std::ffi::NulError),
     Utf8Error(std::str::Utf8Error),
+    NullPointerError(String),
 }
 
 impl fmt::Display for Error {
@@ -33,6 +34,7 @@ impl fmt::Display for Error {
             Error::CommonError(ref msg) => write!(f, "{}", msg),
             Error::NulError(ref error) => write!(f, "{}", error),
             Error::Utf8Error(ref error) => write!(f, "{}", error),
+            Error::NullPointerError(ref error) => write!(f, "{}", error),
         }
     }
 }

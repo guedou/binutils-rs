@@ -6,6 +6,7 @@ use libc::c_ulong;
 use std::ptr;
 
 use Error;
+use utils;
 
 extern "C" {
     fn get_section_size(section: *const SectionRaw) -> c_ulong;
@@ -31,20 +32,15 @@ impl Section {
     }
 
     pub fn from_raw(section_raw: *const SectionRaw) -> Result<Section, Error> {
-        if section_raw.is_null() {
-            return Err(Error::SectionError(
-                "raw section pointer is null!".to_string(),
-            ));
-        };
+        utils::check_null_pointer(section_raw, "raw section pointer is null!")?;
+
         Ok(Section {
             section: section_raw,
         })
     }
 
     pub fn get_size(&self) -> Result<c_ulong, Error> {
-        if self.section.is_null() {
-            return Err(Error::SectionError("section pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.section, "section pointer is null!")?;
 
         Ok(unsafe { get_section_size(self.section) })
     }

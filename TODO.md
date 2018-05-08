@@ -3,13 +3,9 @@
 [ ] the iterator API example does not print the first instruction!
 [x] is DisassembleInfo::empty() useful ? aka could di.raw be really null ?
 [ ] is it possible to have a specific Bfd::empty() implementation ?
-[ ] function that wraps checking for null pointers:
-    fn xxx(ptr, message) {
-      xxx.is_null()
-      Ok()
-      Err()
-    }
 [ ] test_ls() should return Result<(), Error>
+[ ] convert check_null_pointer to a macro to add file and line numbers to the
+    Error
 
 ## Wish list / Roadmap
 

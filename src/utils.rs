@@ -34,3 +34,11 @@ pub fn disassemble_buffer(
 
     Ok(info)
 }
+
+pub(crate) fn check_null_pointer<T>(pointer: *const T, message: &str) -> Result<(), Error> {
+    if pointer.is_null() {
+        Err(Error::NullPointerError(message.to_string()))
+    } else {
+        Ok(())
+    }
+}

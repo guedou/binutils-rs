@@ -11,6 +11,7 @@ use helpers::{buffer_asm, buffer_asm_ptr, get_arch, get_mach, get_start_address,
               macro_bfd_big_endian};
 use opcodes::{disassembler, DisassembleInfo, DisassemblerFunction};
 use section::{Section, SectionRaw};
+use utils;
 
 extern "C" {
     fn bfd_init();
@@ -76,9 +77,7 @@ impl Bfd {
     }
 
     pub fn check_format(&self, format: BfdFormat) -> Result<(), Error> {
-        if self.bfd.is_null() {
-            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         if !unsafe { bfd_check_format(self.bfd, format) } {
             return Err(bfd_convert_error());
@@ -88,9 +87,7 @@ impl Bfd {
     }
 
     pub fn get_section_by_name(&self, section_name: &str) -> Result<Section, Error> {
-        if self.bfd.is_null() {
-            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         let section_name_cstring = CString::new(section_name)?;
 
@@ -103,9 +100,7 @@ impl Bfd {
     }
 
     pub fn disassembler(&self) -> Result<Box<DisassemblerFunction>, Error> {
-        if self.bfd.is_null() {
-            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         let arch = unsafe { bfd_get_arch(self.bfd) };
         let big_endian = match self.is_big_endian() {
@@ -142,17 +137,13 @@ impl Bfd {
     }
 
     pub fn get_start_address(&self) -> Result<c_ulong, Error> {
-        if self.bfd.is_null() {
-            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         Ok(unsafe { get_start_address(self.bfd) })
     }
 
     pub fn is_big_endian(&self) -> Result<bool, Error> {
-        if self.bfd.is_null() {
-            return Err(Error::BfdError(0, "bfd pointer is null!".to_string()));
-        };
+        utils::check_null_pointer(self.bfd, "bfd pointer is null!")?;
 
         Ok(unsafe { macro_bfd_big_endian(self.bfd) })
     }
