@@ -11,11 +11,6 @@ use bfd::Bfd;
 use helpers;
 use opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
-extern "C" {
-    #[allow(dead_code)]
-    pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
-}
-
 pub fn disassemble_buffer(
     arch_name: &str,
     buffer: &[u8],

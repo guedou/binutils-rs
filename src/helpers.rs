@@ -57,4 +57,8 @@ extern "C" {
     ) -> *const DisassembleInfoRaw;
 
     pub(crate) fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
+
+    // Custom helpers
+    #[allow(dead_code)]
+    pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
 }

@@ -140,5 +140,5 @@ fn test_ls(max_instructions: Option<u8>) {
 }
 
 fn main() {
-    test_ls(Some(3));
+    test_ls(Some(12));
 }
