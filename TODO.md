@@ -1,5 +1,7 @@
 ## Before releasing 0.1.0
 
+[ ] build binutils inside target/
+[ ] do pointer arithmetic with checked_add()
 [ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap

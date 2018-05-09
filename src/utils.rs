@@ -6,7 +6,7 @@ use bfd::Bfd;
 use opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
 extern "C" {
-    pub fn show_buffer(info: *const DisassembleInfoRaw);
+    pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
 }
 
 pub fn disassemble_buffer(
