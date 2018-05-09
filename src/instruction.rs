@@ -30,11 +30,14 @@ pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
     let index = unsafe {
         let addr_end = helpers::buffer_asm_ptr as usize;
         let addr_start = (&helpers::buffer_asm as *const u8) as usize;
-        addr_end - addr_start
+        match addr_end.checked_sub(addr_start) {
+            Some(i) => i,
+            None => return Err(Error::CommonError("checked_sub() failed!".to_string())),
+        }
     };
 
     if index == 0 {
-        return Err(Error::CommonError("opcode length is 0!".to_string()));
+        return Err(Error::CommonError("opcode index is 0!".to_string()));
     }
 
     // Extract the instruction string

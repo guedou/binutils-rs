@@ -50,7 +50,18 @@ pub fn opcode_buffer_append(string: *const c_char) {
         // Compute the size of the offset from the base address
         let addr_end = helpers::buffer_asm_ptr as usize;
         let addr_start = (&helpers::buffer_asm as *const u8) as usize;
-        let offset = addr_end - addr_start;
+        let offset = match addr_end.checked_sub(addr_start) {
+            Some(i) => i,
+            None => {
+                let error_message = "checked_sub() failed!";
+                libc::strncat(
+                    helpers::buffer_asm_ptr,
+                    error_message.as_ptr() as *const i8,
+                    error_message.len(),
+                );
+                return;
+            }
+        };
 
         if offset == 0 {
             let error_message = "offset is nul!";

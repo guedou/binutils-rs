@@ -1,7 +1,7 @@
 ## Before releasing 0.1.0
 
 [ ] build binutils inside target/
-[ ] do pointer arithmetic with checked_add() (i.e. when manipulating buffer_asm)
+[x] do pointer arithmetic with checked_add() (i.e. when manipulating buffer_asm)
 [x] write a wrapper to fill the buffer in change_address()
 [ ] change_address() seems broken
 [ ] custom errors cleanup and tests
