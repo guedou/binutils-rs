@@ -1,8 +1,14 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - utils.rs
 
+use std::cmp;
+
+extern crate libc;
+use libc::c_char;
+
 use Error;
 use bfd::Bfd;
+use helpers;
 use opcodes::{DisassembleInfo, DisassembleInfoRaw};
 
 extern "C" {
@@ -41,5 +47,25 @@ pub(crate) fn check_null_pointer<T>(pointer: *const T, message: &str) -> Result<
         Err(Error::NullPointerError(message.to_string()))
     } else {
         Ok(())
+    }
+}
+
+pub fn opcode_buffer_append(string: *const c_char) {
+    unsafe {
+        // Compute the size of the offset from the base address
+        let addr_end = helpers::buffer_asm_ptr as usize;
+        let addr_start = (&helpers::buffer_asm as *const u8) as usize;
+        let offset = addr_end - addr_start;
+
+        if offset == 0 {
+            let error_message = "offset is nul!";
+            libc::strncat(
+                helpers::buffer_asm_ptr,
+                error_message.as_ptr() as *const i8,
+                error_message.len(),
+            );
+            return;
+        }
+        libc::strncat(helpers::buffer_asm_ptr, string, cmp::min(63 - offset, 63));
     }
 }

@@ -8,9 +8,9 @@ use libc::c_ulong;
 
 extern crate binutils;
 use binutils::bfd;
-use binutils::helpers;
 use binutils::instruction;
 use binutils::opcodes::{DisassembleInfo, DisassembleInfoRaw};
+use binutils::utils;
 
 extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
     // Example of C callback that modifies an address used by an instruction
@@ -25,15 +25,8 @@ extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
         Err(msg) => CString::new(format!("{}", msg)).unwrap(),
     };
 
-    // Copy the address to the buffer
-    unsafe {
-        // Compute the size of the offset from the base address
-        let addr_end = helpers::buffer_asm_ptr as usize;
-        let addr_start = (&helpers::buffer_asm as *const u8) as usize;
-        let offset = addr_end - addr_start;
-
-        libc::strncat(helpers::buffer_asm_ptr, fmt_cstring.as_ptr(), 64 - offset);
-    }
+    // Copy the formatted string to the opcode buffer
+    utils::opcode_buffer_append(fmt_cstring.as_ptr());
 }
 
 fn test_ls(max_instructions: Option<u8>) {

@@ -34,7 +34,7 @@ pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
     };
 
     if index == 0 {
-        return Err(Error::CommonError("opcode length is 0!".to_string()))
+        return Err(Error::CommonError("opcode length is 0!".to_string()));
     }
 
     // Extract the instruction string

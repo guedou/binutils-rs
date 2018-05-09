@@ -1,15 +1,16 @@
 ## Before releasing 0.1.0
 
 [ ] build binutils inside target/
-[ ] do pointer arithmetic with checked_add()
+[ ] do pointer arithmetic with checked_add() (i.e. when manipulating buffer_asm)
 [ ] write a wrapper to fill the buffer in change_address()
 [ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap
 
-[ ] convert check_null_pointer() to a macro to add file and line numbers to the Error
-[ ] write more tests
 [ ] add Travis support: test and rustfmt
+[ ] code coverage with tarpaulin
+[ ] write more tests
+[ ] convert check_null_pointer() to a macro to add file and line numbers to the Error
 [ ] fuzz the disassembler
 [ ] generate mach.rs with build.rs
 [ ] generate documentation from comments

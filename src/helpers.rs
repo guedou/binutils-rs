@@ -19,9 +19,9 @@ extern "C" {
 
     pub(crate) fn get_mach(arch_info: *const c_uint) -> u64;
 
-    pub static buffer_asm: [u8; 64];
+    pub(crate) static buffer_asm: [u8; 64];
 
-    pub static mut buffer_asm_ptr: *mut c_char;
+    pub(crate) static mut buffer_asm_ptr: *mut c_char;
 
     // libopcodes helpers
     pub(crate) fn new_disassemble_info() -> *const DisassembleInfoRaw;
