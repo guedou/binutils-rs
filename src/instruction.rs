@@ -25,13 +25,17 @@ impl<'a> fmt::Display for Instruction<'a> {
     }
 }
 
-pub fn get_opcode<'a>() -> Result<&'a str, Error> {
+pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
     // Compute the index of the first nul byte in the array
     let index = unsafe {
         let addr_end = helpers::buffer_asm_ptr as usize;
         let addr_start = (&helpers::buffer_asm as *const u8) as usize;
         addr_end - addr_start
     };
+
+    if index == 0 {
+        return Err(Error::CommonError("opcode length is 0!".to_string()))
+    }
 
     // Extract the instruction string
     let opcode_raw =
@@ -105,5 +109,16 @@ impl<'a> Iterator for Instruction<'a> {
             },
             None => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_no_init() {
+        use instruction;
+
+        assert!(instruction::get_opcode().is_err());
+        assert!(instruction::get_instruction(0, 0).is_err());
     }
 }

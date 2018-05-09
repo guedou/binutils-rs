@@ -38,7 +38,7 @@ extern "C" {
 // Rust bfd types
 // Note: - trick from https://doc.rust-lang.org/nomicon/ffi.html
 //       - it allows to use the Rust type checker
-pub enum BfdRaw {}
+pub(crate) enum BfdRaw {}
 
 #[derive(Clone, Copy)]
 pub struct Bfd {
@@ -47,7 +47,7 @@ pub struct Bfd {
 }
 
 impl Bfd {
-    pub fn raw(&self) -> *const BfdRaw {
+    pub(crate) fn raw(&self) -> *const BfdRaw {
         self.bfd
     }
 

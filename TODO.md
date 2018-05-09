@@ -2,6 +2,7 @@
 
 [ ] build binutils inside target/
 [ ] do pointer arithmetic with checked_add()
+[ ] write a wrapper to fill the buffer in change_address()
 [ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap

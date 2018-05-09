@@ -12,7 +12,7 @@ use section::Section;
 use utils;
 
 extern "C" {
-    pub fn disassembler(
+    pub(crate) fn disassembler(
         arc: c_uint,
         big_endian: bool,
         mach: c_ulong,
@@ -56,7 +56,7 @@ impl DisassembleInfo {
         })
     }
 
-    pub fn raw(&self) -> *const DisassembleInfoRaw {
+    pub(crate) fn raw(&self) -> *const DisassembleInfoRaw {
         self.info
     }
 

@@ -27,7 +27,7 @@ impl Section {
         }
     }
 
-    pub fn raw(&self) -> *const SectionRaw {
+    pub(crate) fn raw(&self) -> *const SectionRaw {
         self.section
     }
 
