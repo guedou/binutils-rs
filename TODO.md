@@ -3,7 +3,8 @@
 [ ] build binutils inside target/
 [x] do pointer arithmetic with checked_add() (i.e. when manipulating buffer_asm)
 [x] write a wrapper to fill the buffer in change_address()
-[ ] change_address() seems broken
+[x] change_address() seems broken
+[ ] add check to utils::opcode_buffer_append()
 [ ] custom errors cleanup and tests
 
 ## Wish list / Roadmap

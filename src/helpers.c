@@ -33,6 +33,11 @@ void copy_buffer(void* useless, const char* format, ...) {
     va_end(ap);
 }
 
+void buffer_append(char* string, unsigned int string_len) {
+    strncat(buffer_asm, string, string_len);
+    buffer_asm_ptr = buffer_asm + strlen(buffer_asm);
+}
+
 void show_buffer(struct disassemble_info *info) {
     printf("len=%d - vma=%lu\n", info->buffer_length, info->buffer_vma);
     printf("%p\n", info->buffer);

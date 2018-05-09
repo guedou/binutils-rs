@@ -1,8 +1,6 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - utils.rs
 
-use std::cmp;
-
 extern crate libc;
 use libc::c_char;
 
@@ -45,33 +43,8 @@ pub(crate) fn check_null_pointer<T>(pointer: *const T, message: &str) -> Result<
     }
 }
 
-pub fn opcode_buffer_append(string: *const c_char) {
+pub fn opcode_buffer_append(string: *const c_char, string_len: u32) {
     unsafe {
-        // Compute the size of the offset from the base address
-        let addr_end = helpers::buffer_asm_ptr as usize;
-        let addr_start = (&helpers::buffer_asm as *const u8) as usize;
-        let offset = match addr_end.checked_sub(addr_start) {
-            Some(i) => i,
-            None => {
-                let error_message = "checked_sub() failed!";
-                libc::strncat(
-                    helpers::buffer_asm_ptr,
-                    error_message.as_ptr() as *const i8,
-                    error_message.len(),
-                );
-                return;
-            }
-        };
-
-        if offset == 0 {
-            let error_message = "offset is nul!";
-            libc::strncat(
-                helpers::buffer_asm_ptr,
-                error_message.as_ptr() as *const i8,
-                error_message.len(),
-            );
-            return;
-        }
-        libc::strncat(helpers::buffer_asm_ptr, string, cmp::min(63 - offset, 63));
+        helpers::buffer_append(string, string_len);
     }
 }

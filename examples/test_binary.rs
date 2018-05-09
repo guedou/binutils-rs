@@ -19,6 +19,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
 
     // Format the address
     let fmt = format!("0x{:x}", addr);
+    let fmt_len = fmt.len();
     let fmt_cstring = match CString::new(fmt) {
         Ok(cstr) => cstr,
         // The following call to unwrap is ok as long as the error message does not contain a NUL byte
@@ -26,7 +27,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
     };
 
     // Copy the formatted string to the opcode buffer
-    utils::opcode_buffer_append(fmt_cstring.as_ptr());
+    utils::opcode_buffer_append(fmt_cstring.as_ptr(), fmt_len as u32);
 }
 
 fn test_ls(max_instructions: Option<u8>) {
