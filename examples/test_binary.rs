@@ -4,15 +4,15 @@
 use std::ffi::CString;
 
 extern crate libc;
-use libc::c_ulong;
+use libc::{c_ulong, uintptr_t};
 
 extern crate binutils;
 use binutils::bfd;
 use binutils::instruction;
-use binutils::opcodes::{DisassembleInfo, DisassembleInfoRaw};
+use binutils::opcodes::DisassembleInfo;
 use binutils::utils;
 
-extern "C" fn change_address(addr: c_ulong, _info: *const DisassembleInfoRaw) {
+extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
     // Example of C callback that modifies an address used by an instruction
 
     //let fmt = "foo\0bar"; // TODO: use it for unit tests!

@@ -3,7 +3,7 @@
 
 #![doc(hidden)]
 
-use libc::{c_char, c_uchar, c_uint, c_ulong};
+use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
 
 use bfd::BfdRaw;
 use opcodes::DisassembleInfoRaw;
@@ -40,7 +40,7 @@ extern "C" {
 
     pub(crate) fn set_print_address_func(
         info: *const DisassembleInfoRaw,
-        print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
+        print_function: extern "C" fn(c_ulong, *const uintptr_t),
     );
 
     pub(crate) fn set_buffer(

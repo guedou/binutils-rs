@@ -1,7 +1,7 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils libopcodes bindings - opcodes.rs
 
-use libc::{c_uint, c_ulong};
+use libc::{c_uint, c_ulong, uintptr_t};
 use std;
 
 use super::Error;
@@ -24,7 +24,7 @@ extern "C" {
 
 pub type DisassemblerFunction = Fn(c_ulong, &DisassembleInfo) -> c_ulong;
 
-pub enum DisassembleInfoRaw {}
+pub(crate) enum DisassembleInfoRaw {}
 
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
@@ -127,7 +127,7 @@ impl DisassembleInfo {
 
     pub fn set_print_address_func(
         &self,
-        print_function: extern "C" fn(c_ulong, *const DisassembleInfoRaw),
+        print_function: extern "C" fn(c_ulong, *const uintptr_t),
     ) -> Result<(), Error> {
         utils::check_null_pointer(self.info, "info pointer is null!")?;
         unsafe { helpers::set_print_address_func(self.info, print_function) }

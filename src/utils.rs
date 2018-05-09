@@ -9,7 +9,7 @@ use libc::c_char;
 use Error;
 use bfd::Bfd;
 use helpers;
-use opcodes::{DisassembleInfo, DisassembleInfoRaw};
+use opcodes::DisassembleInfo;
 
 pub fn disassemble_buffer(
     arch_name: &str,
