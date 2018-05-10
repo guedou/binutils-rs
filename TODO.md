@@ -1,14 +1,15 @@
 ## Before releasing 0.1.0
 
-[ ] build binutils inside target/
+[x] build binutils inside target/
 [x] do pointer arithmetic with checked_add() (i.e. when manipulating buffer_asm)
 [x] write a wrapper to fill the buffer in change_address()
 [x] change_address() seems broken
-[ ] add check to utils::opcode_buffer_append()
+[ ] write helpers::buffer_append() in Rust
 [ ] custom errors cleanup and tests
 
-## Wish list / Roadmap
+## Roadmap
 
+[ ] investigate stripping libraries
 [ ] add Travis support: test and rustfmt
 [ ] code coverage with tarpaulin
 [ ] write more tests
