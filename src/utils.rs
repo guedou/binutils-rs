@@ -3,8 +3,7 @@
 
 use std::ffi::CString;
 
-extern crate libc;
-use libc::c_char;
+use libc;
 
 use Error;
 use bfd::Bfd;
@@ -45,11 +44,11 @@ pub(crate) fn check_null_pointer<T>(pointer: *const T, message: &str) -> Result<
     }
 }
 
-pub fn opcode_buffer_append(string: *const c_char, string_len: usize) {
+pub fn opcode_buffer_append(string: &str) {
     unsafe {
         let buffer_as_ptr = helpers::buffer_asm.as_ptr() as *mut i8;
 
-        if libc::strlen(buffer_as_ptr) + string_len > helpers::BUFFER_MAX_SIZE as usize {
+        if libc::strlen(buffer_as_ptr) + string.len() > helpers::BUFFER_MAX_SIZE as usize {
             let message = match CString::new("Can't append to buffer!") {
                 Ok(cstr) => cstr,
                 // The following call to unwrap is ok as long as the error message does not contain a NUL byte
@@ -61,7 +60,7 @@ pub fn opcode_buffer_append(string: *const c_char, string_len: usize) {
                 helpers::BUFFER_MAX_SIZE as usize,
             );
         } else {
-            libc::strncat(buffer_as_ptr, string, string_len);
+            libc::strncat(buffer_as_ptr, string.as_ptr() as *const i8, string.len());
         }
 
         // Update the buffer pointer

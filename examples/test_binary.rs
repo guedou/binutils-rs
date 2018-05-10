@@ -1,8 +1,6 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - test_binary.rs
 
-use std::ffi::CString;
-
 extern crate libc;
 use libc::{c_ulong, uintptr_t};
 
@@ -17,17 +15,8 @@ extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
 
     //let fmt = "foo\0bar"; // TODO: use it for unit tests!
 
-    // Format the address
-    let fmt = format!("0x{:x}", addr);
-    let fmt_len = fmt.len();
-    let fmt_cstring = match CString::new(fmt) {
-        Ok(cstr) => cstr,
-        // The following call to unwrap is ok as long as the error message does not contain a NUL byte
-        Err(msg) => CString::new(format!("{}", msg)).unwrap(),
-    };
-
-    // Copy the formatted string to the opcode buffer
-    utils::opcode_buffer_append(fmt_cstring.as_ptr(), fmt_len);
+    // Format the address and copy it to the buffer
+    utils::opcode_buffer_append(&format!("0x{:x}", addr));
 }
 
 fn test_ls(max_instructions: Option<u8>) {
