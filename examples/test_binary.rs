@@ -27,7 +27,7 @@ extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
     };
 
     // Copy the formatted string to the opcode buffer
-    utils::opcode_buffer_append(fmt_cstring.as_ptr(), fmt_len as u32);
+    utils::opcode_buffer_append(fmt_cstring.as_ptr(), fmt_len);
 }
 
 fn test_ls(max_instructions: Option<u8>) {

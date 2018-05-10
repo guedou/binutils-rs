@@ -3,7 +3,7 @@
 
 #![doc(hidden)]
 
-use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
+use libc::{c_char, c_uchar, c_uint, c_ulong, c_ushort, uintptr_t};
 
 use bfd::BfdRaw;
 use opcodes::DisassembleInfoRaw;
@@ -22,6 +22,8 @@ extern "C" {
     pub(crate) static buffer_asm: [u8; 64];
 
     pub(crate) static mut buffer_asm_ptr: *mut c_char;
+
+    pub(crate) static BUFFER_MAX_SIZE: c_ushort;
 
     // libopcodes helpers
     pub(crate) fn new_disassemble_info() -> *const DisassembleInfoRaw;
@@ -59,8 +61,6 @@ extern "C" {
     pub(crate) fn get_disassemble_info_section_vma(info: *const DisassembleInfoRaw) -> c_ulong;
 
     // Custom helpers
-    pub(crate) fn buffer_append(string: *const c_char, string_len: c_uint);
-
     #[allow(dead_code)]
     pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
 }

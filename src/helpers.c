@@ -19,6 +19,7 @@
 /*** Generic helpers ***/
 
 #define BUFFER_SIZE 64
+unsigned short BUFFER_MAX_SIZE = BUFFER_SIZE;
 char buffer_asm[BUFFER_SIZE];
 char *buffer_asm_ptr = buffer_asm;
 void copy_buffer(void* useless, const char* format, ...) {
@@ -31,11 +32,6 @@ void copy_buffer(void* useless, const char* format, ...) {
     vsnprintf(buffer_asm_ptr, BUFFER_SIZE-(buffer_asm_ptr-buffer_asm), format, ap);
     buffer_asm_ptr = buffer_asm + strlen(buffer_asm);
     va_end(ap);
-}
-
-void buffer_append(char* string, unsigned int string_len) {
-    strncat(buffer_asm, string, string_len);
-    buffer_asm_ptr = buffer_asm + strlen(buffer_asm);
 }
 
 void show_buffer(struct disassemble_info *info) {

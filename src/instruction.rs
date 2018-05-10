@@ -41,8 +41,11 @@ pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
     }
 
     // Extract the instruction string
-    let opcode_raw =
-        unsafe { CStr::from_bytes_with_nul(&helpers::buffer_asm[0..cmp::min(index, 63) + 1]) };
+    let opcode_raw = unsafe {
+        CStr::from_bytes_with_nul(
+            &helpers::buffer_asm[0..cmp::min(index, (helpers::BUFFER_MAX_SIZE as usize) - 1) + 1],
+        )
+    };
     Ok(opcode_raw?.to_str()?)
 }
 

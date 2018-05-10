@@ -1,6 +1,8 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - utils.rs
 
+use std::ffi::CString;
+
 extern crate libc;
 use libc::c_char;
 
@@ -43,8 +45,27 @@ pub(crate) fn check_null_pointer<T>(pointer: *const T, message: &str) -> Result<
     }
 }
 
-pub fn opcode_buffer_append(string: *const c_char, string_len: u32) {
+pub fn opcode_buffer_append(string: *const c_char, string_len: usize) {
     unsafe {
-        helpers::buffer_append(string, string_len);
+        let buffer_as_ptr = helpers::buffer_asm.as_ptr() as *mut i8;
+
+        if libc::strlen(buffer_as_ptr) + string_len > helpers::BUFFER_MAX_SIZE as usize {
+            let message = match CString::new("Can't append to buffer!") {
+                Ok(cstr) => cstr,
+                // The following call to unwrap is ok as long as the error message does not contain a NUL byte
+                Err(msg) => CString::new(format!("{}", msg)).unwrap(),
+            };
+            libc::strncpy(
+                buffer_as_ptr,
+                message.as_ptr(),
+                helpers::BUFFER_MAX_SIZE as usize,
+            );
+        } else {
+            libc::strncat(buffer_as_ptr, string, string_len);
+        }
+
+        // Update the buffer pointer
+        let buffer_len = libc::strlen(buffer_as_ptr) as isize;
+        helpers::buffer_asm_ptr = buffer_as_ptr.offset(buffer_len as isize);
     }
 }
