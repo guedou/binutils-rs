@@ -5,6 +5,9 @@ A Rust library that ease interacting with the
 high-level API. Its main goal is to simplify disassembling raw buffers into
 instructions.
 
+[![crates.io badge](https://img.shields.io/crates/v/binutils.svg)](https://crates.io/crates/binutils/)
+[![doc.rs badge](https://docs.rs/mio/badge.svg)](https://docs.rs/binutils/)
+
 ## Usage
 
 You need to add the following lines to your `Cargo.toml`:
@@ -51,7 +54,7 @@ loop {
 }
 ```
 
-Bigger examples are located in the [examples/](examples) directory, and be used
+Other examples are located in the [examples/](examples) directory, and be used
 with `cargo run --example`.
 
 ## Resources
@@ -62,7 +65,7 @@ Examples in C and archived documentations are available in the
 ## Roadmap
 
 [ ] add Travis support: test and rustfmt
-[ ] add link to doc.rs
+[x] add link to doc.rs
 [ ] code coverage with tarpaulin
 [ ] write more tests
 [ ] investigate stripping libraries
