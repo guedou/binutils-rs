@@ -11,6 +11,8 @@
 #include <bfd.h>
 #include <dis-asm.h>
 
+void buffer_to_rust(char *buffer);
+
 
 // Silly macro that helps removing the unused warnings
 #define UNUSED_VARIABLE(id) id=id
@@ -19,9 +21,7 @@
 /*** Generic helpers ***/
 
 #define BUFFER_SIZE 64
-unsigned short BUFFER_MAX_SIZE = BUFFER_SIZE;
 char buffer_asm[BUFFER_SIZE];
-char *buffer_asm_ptr = buffer_asm;
 void copy_buffer(void* useless, const char* format, ...) {
     /* Construct the final opcode into buffer_asm */
     UNUSED_VARIABLE(useless);
@@ -29,9 +29,9 @@ void copy_buffer(void* useless, const char* format, ...) {
     va_list ap;
 
     va_start(ap, format);
-    vsnprintf(buffer_asm_ptr, BUFFER_SIZE-(buffer_asm_ptr-buffer_asm), format, ap);
-    buffer_asm_ptr = buffer_asm + strlen(buffer_asm);
+    vsnprintf(buffer_asm, BUFFER_SIZE, format, ap);
     va_end(ap);
+    buffer_to_rust(buffer_asm);
 }
 
 void show_buffer(struct disassemble_info *info) {

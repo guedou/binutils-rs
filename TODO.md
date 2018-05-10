@@ -5,8 +5,7 @@
 [x] write a wrapper to fill the buffer in change_address()
 [x] change_address() seems broken
 [x] write helpers::buffer_append() in Rust
-[ ] custom errors cleanup and tests
-[ ] copy_buffer() function could use a Rust callback and remove the need of
+[x] copy_buffer() function could use a Rust callback and remove the need of
     buffer_asm
 
 ## Roadmap

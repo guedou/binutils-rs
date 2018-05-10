@@ -7,8 +7,7 @@ use std;
 use std::ffi::{CStr, CString};
 
 use Error;
-use helpers::{buffer_asm, buffer_asm_ptr, get_arch, get_mach, get_start_address,
-              macro_bfd_big_endian};
+use helpers::{get_arch, get_mach, get_start_address, macro_bfd_big_endian, CURRENT_OPCODE};
 use opcodes::{disassembler, DisassembleInfo, DisassemblerFunction};
 use section::{Section, SectionRaw};
 use utils;
@@ -128,8 +127,8 @@ impl Bfd {
         let disassemble_closure = move |p: c_ulong, di: &DisassembleInfo| -> c_ulong {
             // Reset the buffer pointer
             unsafe {
-                buffer_asm_ptr = buffer_asm.as_ptr() as *mut c_char;
-            };
+                CURRENT_OPCODE = None;
+            }
             disassemble(p, di.raw())
         };
 

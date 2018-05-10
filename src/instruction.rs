@@ -1,8 +1,6 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - instruction.rs
 
-use std::cmp;
-use std::ffi::CStr;
 use std::fmt;
 
 use Error;
@@ -26,27 +24,14 @@ impl<'a> fmt::Display for Instruction<'a> {
 }
 
 pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
-    // Compute the index of the first nul byte in the array
-    let index = unsafe {
-        let addr_end = helpers::buffer_asm_ptr as usize;
-        let addr_start = (&helpers::buffer_asm as *const u8) as usize;
-        match addr_end.checked_sub(addr_start) {
-            Some(i) => i,
-            None => return Err(Error::CommonError("checked_sub() failed!".to_string())),
-        }
-    };
-
-    if index == 0 {
-        return Err(Error::CommonError("opcode index is 0!".to_string()));
+    unsafe {
+        let ret = match helpers::CURRENT_OPCODE {
+            None => Err(Error::DisassembleInfoError("Empty opcode!".to_string())),
+            Some(ref opcode) => Ok(opcode.as_str()),
+        };
+        helpers::CURRENT_OPCODE = None;
+        ret
     }
-
-    // Extract the instruction string
-    let opcode_raw = unsafe {
-        CStr::from_bytes_with_nul(
-            &helpers::buffer_asm[0..cmp::min(index, (helpers::BUFFER_MAX_SIZE as usize) - 1) + 1],
-        )
-    };
-    Ok(opcode_raw?.to_str()?)
 }
 
 pub fn get_instruction<'a>(offset: u64, length: u64) -> Result<Instruction<'a>, Error> {

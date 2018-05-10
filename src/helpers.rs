@@ -3,7 +3,9 @@
 
 #![doc(hidden)]
 
-use libc::{c_char, c_uchar, c_uint, c_ulong, c_ushort, uintptr_t};
+use std::ffi::CStr;
+
+use libc::{c_char, c_uchar, c_uint, c_ulong, uintptr_t};
 
 use bfd::BfdRaw;
 use opcodes::DisassembleInfoRaw;
@@ -18,12 +20,6 @@ extern "C" {
     pub(crate) fn get_arch(arch_info: *const c_uint) -> u32;
 
     pub(crate) fn get_mach(arch_info: *const c_uint) -> u64;
-
-    pub(crate) static buffer_asm: [u8; 64];
-
-    pub(crate) static mut buffer_asm_ptr: *mut c_char;
-
-    pub(crate) static BUFFER_MAX_SIZE: c_ushort;
 
     // libopcodes helpers
     pub(crate) fn new_disassemble_info() -> *const DisassembleInfoRaw;
@@ -63,4 +59,20 @@ extern "C" {
     // Custom helpers
     #[allow(dead_code)]
     pub(crate) fn show_buffer(info: *const DisassembleInfoRaw);
+}
+
+pub(crate) static mut CURRENT_OPCODE: Option<String> = None;
+
+#[no_mangle]
+pub unsafe extern "C" fn buffer_to_rust(buffer: *const c_char) {
+    let buffer_cstr = CStr::from_ptr(buffer);
+    let current_string = match CURRENT_OPCODE {
+        Some(ref o) => o,
+        None => "",
+    };
+    let new_string = match buffer_cstr.to_str() {
+        Ok(s) => s.to_string(),
+        Err(e) => format!("buffer_to_rust() - {}", e),
+    };
+    CURRENT_OPCODE = Some(format!("{}{}", current_string, new_string));
 }
