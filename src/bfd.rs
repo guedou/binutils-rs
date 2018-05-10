@@ -269,9 +269,38 @@ mod tests {
         let raw_section_name = b".\0text".to_vec();
         let section_name = unsafe { std::str::from_utf8_unchecked(&raw_section_name) };
         match bfd.get_section_by_name(section_name) {
-            Ok(_) => assert!(true),
+            Ok(_) => assert!(false),
             Err(Error::NulError(_)) => assert!(true),
             Err(_) => assert!(false),
         }
+
+        match bfd.get_section_by_name("unknown") {
+            Ok(_) => assert!(false),
+            Err(Error::SectionError(_)) => assert!(true),
+            Err(_) => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_bfd_get_section_good() {
+        use bfd;
+
+        let bfd = bfd::Bfd::openr("/bin/ls", "elf64-x86-64").unwrap();
+        bfd.check_format(bfd::BfdFormat::bfd_object).unwrap();
+        match bfd.get_section_by_name(".text") {
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false),
+        }
+
+        assert!(bfd.get_start_address().is_ok());
+        assert!(!bfd.is_big_endian().unwrap_or(true));
+    }
+
+    #[test]
+    fn test_bfd_arch_list() {
+        use bfd;
+
+        let bfd = bfd::Bfd::empty();
+        assert_eq!(bfd.arch_list()[0..2].len(), 2);
     }
 }
