@@ -13,8 +13,6 @@ use binutils::utils;
 extern "C" fn change_address(addr: c_ulong, _info: *const uintptr_t) {
     // Example of C callback that modifies an address used by an instruction
 
-    //let fmt = "foo\0bar"; // TODO: use it for unit tests!
-
     // Format the address and copy it to the buffer
     utils::opcode_buffer_append(&format!("0x{:x}", addr));
 }
