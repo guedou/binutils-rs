@@ -120,7 +120,7 @@ mod tests {
         use opcodes;
 
         let mut bfd = bfd::Bfd::empty();
-        let _ = bfd.set_arch_mach("i386:x86-x64");
+        let _ = bfd.set_arch_mach("i386:x86-64");
 
         let mut info = opcodes::DisassembleInfo::new().unwrap();
 
