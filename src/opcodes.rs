@@ -183,6 +183,7 @@ impl Drop for DisassembleInfo {
             unsafe {
                 helpers::free_disassemble_info(self.info);
             }
+            self.info = std::ptr::null();
         }
     }
 }
