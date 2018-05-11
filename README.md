@@ -64,15 +64,14 @@ Examples in C and archived documentations are available in the
 
 ## Roadmap
 
-[ ] add Travis support: test and rustfmt
-[x] add link to doc.rs
-[ ] code coverage with tarpaulin
-[ ] write more tests
-[ ] investigate stripping libraries
-[ ] convert check_null_pointer() to a macro to add file and line numbers to the Error
-[ ] fuzz the disassembler
-[ ] generate mach.rs with build.rs
-[ ] generate documentation from comments
-[ ] use the error_chain crate
-[ ] investigate info->stop_vma
-[ ] rewrite copy_buffer in Rust
+- [ ] add Travis support: test and rustfmt
+- [ ] code coverage with tarpaulin
+- [ ] write more tests
+- [ ] investigate stripping libraries
+- [ ] convert check_null_pointer() to a macro to add file and line numbers to the Error
+- [ ] fuzz the disassembler
+- [ ] generate mach.rs with build.rs
+- [ ] generate documentation from comments
+- [ ] use the error_chain crate
+- [ ] investigate info->stop_vma
+- [ ] rewrite copy_buffer in Rust
