@@ -22,7 +22,7 @@ extern crate binutils;
 ```
 
 > **Note:**
-By default all architectures supported by binutils will be built by cargo. The
+By default, all architectures supported by binutils will be built by cargo. The
 resulting library will be over 60MB. When size is an issue, the `TARGETS`
 environment variable can be set to only build specific architectures (i.e.
 `TARGETS=arm-linux,mep`) as defined in `bfd/config.bfd`.
