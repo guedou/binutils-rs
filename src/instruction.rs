@@ -112,4 +112,22 @@ mod tests {
         assert!(instruction::get_opcode().is_err());
         assert!(instruction::get_instruction(0, 0).is_err());
     }
+
+    #[test]
+    fn test_iterator() {
+        use bfd;
+        use instruction;
+        use opcodes;
+
+        let mut bfd = bfd::Bfd::empty();
+        let _ = bfd.set_arch_mach("i386:x86-x64");
+
+        let mut info = opcodes::DisassembleInfo::new().unwrap();
+
+        let mut instruction = instruction::Instruction::from_buffer(&mut info, bfd, &vec![0x90], 0);
+        match instruction.next() {
+            Some(i) => assert_eq!(i.opcode, "nop"),
+            None => assert!(false),
+        };
+    }
 }

@@ -49,3 +49,21 @@ pub fn opcode_buffer_append(string: &str) {
         helpers::CURRENT_OPCODE = Some(format!("{}{}", tmp, string));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_opcode_buffer_append() {
+        use helpers;
+        use utils;
+
+        unsafe {
+            helpers::CURRENT_OPCODE = None;
+            utils::opcode_buffer_append("te");
+            assert_eq!(helpers::CURRENT_OPCODE, Some("te".to_string()));
+            utils::opcode_buffer_append("st!");
+            assert_eq!(helpers::CURRENT_OPCODE, Some("test!".to_string()));
+            helpers::CURRENT_OPCODE = None;
+        }
+    }
+}

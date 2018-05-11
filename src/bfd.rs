@@ -288,9 +288,12 @@ mod tests {
         let bfd = bfd::Bfd::openr("/bin/ls", "elf64-x86-64").unwrap();
         bfd.check_format(bfd::BfdFormat::bfd_object).unwrap();
         match bfd.get_section_by_name(".text") {
-            Ok(_) => assert!(true),
+            Ok(section) => {
+                assert!(!section.raw().is_null());
+                assert!(section.get_size().unwrap() > 0);
+            }
             Err(_) => assert!(false),
-        }
+        };
 
         assert!(bfd.get_start_address().is_ok());
         assert!(!bfd.is_big_endian().unwrap_or(true));
@@ -302,5 +305,28 @@ mod tests {
 
         let bfd = bfd::Bfd::empty();
         assert_eq!(bfd.arch_list()[0..2].len(), 2);
+    }
+
+    #[test]
+    fn test_bfd_disassemble() {
+        use bfd;
+        use opcodes;
+
+        let bfd = bfd::Bfd::openr("/bin/ls", "elf64-x86-64").unwrap();
+        bfd.check_format(bfd::BfdFormat::bfd_object).unwrap();
+        let section = bfd.get_section_by_name(".text").unwrap();
+
+        let info = match opcodes::DisassembleInfo::new() {
+            Ok(i) => i,
+            Err(_) => {
+                assert!(false);
+                return;
+            }
+        };
+
+        match info.configure(section, bfd) {
+            Ok(_) => assert!(true),
+            Err(_) => assert!(false),
+        };
     }
 }
