@@ -14,7 +14,7 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
 
     let mut bfd = bfd::Bfd::empty();
 
-    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+    if !bfd::arch_list().iter().any(|arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
         return;
     }
@@ -84,7 +84,7 @@ fn test_buffer_compact(arch_name: &str, buffer: Vec<u8>, offset: u64) {
 
     let mut bfd = bfd::Bfd::empty();
 
-    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+    if !bfd::arch_list().iter().any(|arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
         return;
     }
@@ -160,7 +160,7 @@ fn test_buffer_iter(arch_name: &str, buffer: Vec<u8>, offset: u64) {
 
     let mut bfd = bfd::Bfd::empty();
 
-    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+    if !bfd::arch_list().iter().any(|arch| arch == arch_name) {
         println!("Unsuported architecture ({})!", arch_name);
         return;
     }

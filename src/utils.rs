@@ -2,7 +2,7 @@
 // binutils - utils.rs
 
 use Error;
-use bfd::Bfd;
+use bfd::{Bfd, arch_list};
 use helpers;
 use opcodes::DisassembleInfo;
 
@@ -15,7 +15,7 @@ pub fn disassemble_buffer(
     let mut bfd = Bfd::empty();
 
     // Check if the architecture is supported
-    if !bfd.arch_list().iter().any(|&arch| arch == arch_name) {
+    if !arch_list().iter().any(|arch| arch == arch_name) {
         let error = Error::CommonError(format!("Unsupported architecture ({})!", arch_name));
         return Err(error);
     }

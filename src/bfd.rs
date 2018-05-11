@@ -146,40 +146,6 @@ impl Bfd {
 
         Ok(unsafe { macro_bfd_big_endian(self.bfd) })
     }
-
-    pub fn arch_list(&self) -> Vec<&str> {
-        let mut ret_vec = Vec::new();
-        let mut index = 0;
-        let mut stop = false;
-
-        let list = unsafe { bfd_arch_list() };
-        if list.is_null() {
-            return ret_vec;
-        }
-
-        loop {
-            let slice = unsafe { std::slice::from_raw_parts(list.offset(index), 32) };
-            for item in slice.iter().take(32) {
-                if *item == 0 {
-                    stop = true;
-                    break;
-                }
-                let arch = unsafe { CStr::from_ptr(*item as *const i8).to_str() };
-                match arch {
-                    Ok(s) => ret_vec.push(s),
-                    Err(_) => ret_vec.push("arch_list() - from_ptr() error !"),
-                }
-            }
-            if stop {
-                break;
-            } else {
-                index += 32;
-            }
-        }
-
-        ret_vec
-    }
-
     pub fn set_arch_mach(&mut self, arch: &str) -> Result<(u32, u64), Error> {
         let arch_cstring = CString::new(arch)?;
         let arch_info = unsafe { bfd_scan_arch(arch_cstring.as_ptr()) };
@@ -189,6 +155,39 @@ impl Bfd {
         self.arch_mach = unsafe { (get_arch(arch_info), get_mach(arch_info)) };
         Ok(self.arch_mach)
     }
+}
+
+pub fn arch_list() -> Vec<String> {
+    let mut ret_vec = Vec::new();
+    let mut index = 0;
+    let mut stop = false;
+
+    let list = unsafe { bfd_arch_list() };
+    if list.is_null() {
+        return ret_vec;
+    }
+
+    loop {
+        let slice = unsafe { std::slice::from_raw_parts(list.offset(index), 32) };
+        for item in slice.iter().take(32) {
+            if *item == 0 {
+                stop = true;
+                break;
+            }
+            let arch = unsafe { CStr::from_ptr(*item as *const i8).to_str() };
+            match arch {
+                Ok(s) => ret_vec.push(s.to_string()),
+                Err(_) => ret_vec.push("arch_list() - from_ptr() error !".to_string()),
+            }
+        }
+        if stop {
+            break;
+        } else {
+            index += 32;
+        }
+    }
+
+    ret_vec
 }
 
 fn bfd_convert_error() -> Error {
@@ -303,8 +302,7 @@ mod tests {
     fn test_bfd_arch_list() {
         use bfd;
 
-        let bfd = bfd::Bfd::empty();
-        assert_eq!(bfd.arch_list()[0..2].len(), 2);
+        assert_eq!(bfd::arch_list()[0..2].len(), 2);
     }
 
     #[test]
