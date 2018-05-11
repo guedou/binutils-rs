@@ -289,7 +289,7 @@ mod tests {
         bfd.check_format(bfd::BfdFormat::bfd_object).unwrap();
         match bfd.get_section_by_name(".text") {
             Ok(_) => assert!(true),
-            Err(e) => assert!(false),
+            Err(_) => assert!(false),
         }
 
         assert!(bfd.get_start_address().is_ok());
