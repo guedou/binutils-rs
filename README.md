@@ -13,7 +13,7 @@ instructions.
 You need to add the following lines to your `Cargo.toml`:
 ```toml
 [dependencies]
-binutils = "0.1.0"
+binutils = "0.1.1"
 ```
 
 and make sure that your are using it in your code:
