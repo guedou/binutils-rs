@@ -6,7 +6,7 @@ high-level API. Its main goal is to simplify disassembling raw buffers into
 instructions.
 
 [![crates.io badge](https://img.shields.io/crates/v/binutils.svg)](https://crates.io/crates/binutils/)
-[![doc.rs badge](https://docs.rs/mio/badge.svg)](https://docs.rs/crate/binutils/)
+[![doc.rs badge](https://docs.rs/binutils/badge.svg)](https://docs.rs/crate/binutils/)
 
 ## Usage
 
