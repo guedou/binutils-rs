@@ -22,7 +22,7 @@ extern "C" {
     fn disassemble_init_for_target(dinfo: *const DisassembleInfoRaw);
 }
 
-pub type DisassemblerFunction = Fn(c_ulong, &DisassembleInfo) -> c_ulong;
+pub type DisassemblerFunction = dyn Fn(c_ulong, &DisassembleInfo) -> c_ulong;
 
 pub(crate) enum DisassembleInfoRaw {}
 
