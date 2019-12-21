@@ -27,7 +27,7 @@ impl Section {
         }
     }
 
-    pub(crate) fn raw(&self) -> *const SectionRaw {
+    pub(crate) fn raw(self) -> *const SectionRaw {
         self.section
     }
 
@@ -39,7 +39,7 @@ impl Section {
         })
     }
 
-    pub fn get_size(&self) -> Result<c_ulong, Error> {
+    pub fn get_size(self) -> Result<c_ulong, Error> {
         utils::check_null_pointer(self.section, "section pointer is null!")?;
 
         Ok(unsafe { get_section_size(self.section) })

@@ -63,6 +63,8 @@ extern "C" {
 
 pub(crate) static mut CURRENT_OPCODE: Option<String> = None;
 
+/// # Safety
+/// This function is not meant to be called from Rust code. It is used by the C copy_buffer() helper function.
 #[no_mangle]
 pub unsafe extern "C" fn buffer_to_rust(buffer: *const c_char) {
     let buffer_cstr = CStr::from_ptr(buffer);
