@@ -3,10 +3,10 @@
 
 use std::fmt;
 
-use Error;
 use bfd::Bfd;
 use helpers;
 use opcodes::DisassembleInfo;
+use Error;
 
 #[allow(dead_code)]
 pub struct Instruction<'a> {

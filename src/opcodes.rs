@@ -192,9 +192,9 @@ impl Drop for DisassembleInfo {
 mod tests {
     #[test]
     fn test_di_empty() {
-        use std;
         use bfd;
         use opcodes;
+        use std;
 
         let mut di = opcodes::DisassembleInfo::empty();
         assert_eq!(di.info, std::ptr::null());
@@ -208,7 +208,8 @@ mod tests {
         let _ = bfd.set_arch_mach("i386:x86-64");
         let _ = di.configure_buffer(bfd.arch_mach.0, bfd.arch_mach.1, &[0x90], 1);
 
-        let disassemble_fn = bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1)
+        let disassemble_fn = bfd
+            .raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1)
             .unwrap();
         let _ = di.configure_disassembler(disassemble_fn);
     }
@@ -216,10 +217,10 @@ mod tests {
     #[test]
     fn test_configure_null() {
         // Make sure that configure() test null pointers
-        use std;
         use bfd;
         use opcodes;
         use section;
+        use std;
 
         let di = opcodes::DisassembleInfo::new().unwrap();
         assert_ne!(di.info, std::ptr::null());
@@ -243,9 +244,9 @@ mod tests {
 
     #[test]
     fn test_configure_disassembler() {
-        use std;
         use bfd;
         use opcodes;
+        use std;
 
         let mut di = opcodes::DisassembleInfo::new().unwrap();
         assert_ne!(di.info, std::ptr::null());
@@ -253,7 +254,8 @@ mod tests {
         let mut bfd = bfd::Bfd::empty();
         let _ = bfd.set_arch_mach("i386:x86-64");
 
-        let disassemble_fn = bfd.raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1)
+        let disassemble_fn = bfd
+            .raw_disassembler(bfd.arch_mach.0, false, bfd.arch_mach.1)
             .unwrap();
         let _ = di.configure_disassembler(disassemble_fn);
     }

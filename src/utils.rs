@@ -1,10 +1,10 @@
 // Guillaume Valadon <guillaume@valadon.net>
 // binutils - utils.rs
 
-use Error;
-use bfd::{Bfd, arch_list};
+use bfd::{arch_list, Bfd};
 use helpers;
 use opcodes::DisassembleInfo;
+use Error;
 
 pub fn disassemble_buffer(
     arch_name: &str,
