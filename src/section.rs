@@ -5,8 +5,8 @@ use libc::c_ulong;
 
 use std::ptr;
 
-use Error;
 use utils;
+use Error;
 
 extern "C" {
     fn get_section_size(section: *const SectionRaw) -> c_ulong;

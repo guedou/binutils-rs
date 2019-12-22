@@ -6,11 +6,11 @@ use libc::{c_char, c_uint, c_ulong, uintptr_t};
 use std;
 use std::ffi::{CStr, CString};
 
-use Error;
 use helpers::{get_arch, get_mach, get_start_address, macro_bfd_big_endian, CURRENT_OPCODE};
 use opcodes::{disassembler, DisassembleInfo, DisassemblerFunction};
 use section::{Section, SectionRaw};
 use utils;
+use Error;
 
 extern "C" {
     fn bfd_init();
@@ -215,8 +215,8 @@ pub enum BfdFormat {
 mod tests {
     #[test]
     fn test_bfd_empty() {
-        use std;
         use bfd;
+        use std;
 
         let bfd = bfd::Bfd::empty();
         assert_eq!(bfd.bfd, std::ptr::null());
@@ -234,8 +234,8 @@ mod tests {
 
     #[test]
     fn test_bfd_openr() {
-        use std;
         use bfd;
+        use std;
         use Error;
 
         let raw_binary_name = b"bin\0name".to_vec();
@@ -260,8 +260,8 @@ mod tests {
 
     #[test]
     fn test_bfd_get_section_bad() {
-        use std;
         use bfd;
+        use std;
         use Error;
 
         let bfd = bfd::Bfd::openr("/bin/ls", "elf64-x86-64").unwrap();
