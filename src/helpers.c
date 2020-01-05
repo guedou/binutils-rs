@@ -4,6 +4,7 @@
 #include <config.h>
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -103,11 +104,13 @@ unsigned long get_disassemble_info_section_vma(struct disassemble_info *info) {
   return info->section->vma;
 }
 
-void free_disassemble_info(struct disassemble_info *info) {
+void free_disassemble_info(struct disassemble_info *info, bool free_section) {
   /* Free the structure and allocated variable */
-  if (info->section)
+  if (info) {
+    if (free_section && info->section)
       free(info->section);
-  free(info);
+    free(info);
+  }
 }
 
 
