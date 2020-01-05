@@ -38,7 +38,7 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
     };
 
     // Create a disassemble_info structure
-    let info = match DisassembleInfo::new() {
+    let mut info = match DisassembleInfo::new() {
         Ok(i) => i,
         Err(e) => {
             println!("{}", e);

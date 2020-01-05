@@ -48,7 +48,7 @@ extern "C" {
         vma: c_ulong,
     ) -> *const SectionRaw;
 
-    pub(crate) fn free_disassemble_info(info: *const DisassembleInfoRaw);
+    pub(crate) fn free_disassemble_info(info: *const DisassembleInfoRaw, free_section: bool);
 
     pub(crate) fn get_disassemble_info_section(
         info: *const DisassembleInfoRaw,

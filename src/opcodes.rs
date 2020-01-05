@@ -28,6 +28,7 @@ pub(crate) enum DisassembleInfoRaw {}
 
 pub struct DisassembleInfo {
     info: *const DisassembleInfoRaw,
+    free_section: bool,
     disassembler: Option<Box<DisassemblerFunction>>,
     pc: u64,
 }
@@ -36,6 +37,7 @@ impl DisassembleInfo {
     pub fn empty() -> DisassembleInfo {
         DisassembleInfo {
             info: std::ptr::null(),
+            free_section: false,
             disassembler: None,
             pc: 0,
         }
@@ -51,6 +53,7 @@ impl DisassembleInfo {
 
         Ok(DisassembleInfo {
             info: new_info,
+            free_section: false,
             disassembler: None,
             pc: 0,
         })
@@ -88,7 +91,7 @@ impl DisassembleInfo {
     }
 
     pub fn configure_buffer(
-        &self,
+        &mut self,
         arch: c_uint,
         mach: c_ulong,
         buffer: &[u8],
@@ -114,6 +117,7 @@ impl DisassembleInfo {
                     "set_buffer() malloc error!".to_string(),
                 ));
             }
+            self.free_section = true;
         }
         Ok(())
     }
@@ -181,7 +185,7 @@ impl Drop for DisassembleInfo {
     fn drop(&mut self) {
         if !self.info.is_null() {
             unsafe {
-                helpers::free_disassemble_info(self.info);
+                helpers::free_disassemble_info(self.info, self.free_section);
             }
             self.info = std::ptr::null();
         }
