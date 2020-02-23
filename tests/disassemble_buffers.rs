@@ -1,6 +1,6 @@
 extern crate binutils;
-use binutils::utils::disassemble_buffer;
 use binutils::opcodes::DisassembleInfo;
+use binutils::utils::disassemble_buffer;
 
 #[test]
 fn compact_loop() {
@@ -10,7 +10,8 @@ fn compact_loop() {
 
     // Iterate over the instructions
     loop {
-        match info.disassemble()
+        match info
+            .disassemble()
             .ok_or(2807)
             .map(|i| Some(i.unwrap()))
             .unwrap_or(None)
