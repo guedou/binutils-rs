@@ -12,7 +12,7 @@ use Error;
 pub struct Instruction<'a> {
     pub length: u64,
     pub offset: u64,
-    pub opcode: &'a str,
+    pub opcode: String,
     info: Option<&'a mut DisassembleInfo>,
     pub error: Option<Error>,
 }
@@ -23,11 +23,11 @@ impl<'a> fmt::Display for Instruction<'a> {
     }
 }
 
-pub(crate) fn get_opcode<'a>() -> Result<&'a str, Error> {
+pub(crate) fn get_opcode() -> Result<String, Error> {
     unsafe {
         let ret = match helpers::CURRENT_OPCODE {
             None => Err(Error::DisassembleInfoError("Empty opcode!".to_string())),
-            Some(ref opcode) => Ok(opcode.as_str()),
+            Some(ref opcode) => Ok(opcode.clone()),
         };
         helpers::CURRENT_OPCODE = None;
         ret
@@ -49,7 +49,7 @@ impl<'a> Instruction<'a> {
         Instruction {
             offset: 0,
             length: 0,
-            opcode: "",
+            opcode: String::new(),
             info: None,
             error,
         }
@@ -68,7 +68,7 @@ impl<'a> Instruction<'a> {
         Instruction {
             offset: 0,
             length: 0,
-            opcode: "",
+            opcode: String::new(),
             info: Some(info),
             error: None,
         }
