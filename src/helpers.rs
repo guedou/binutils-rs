@@ -63,6 +63,9 @@ extern "C" {
 
 pub(crate) static mut CURRENT_OPCODE: Option<String> = None;
 
+/// # Safety
+///
+/// This function is used to copy the disassembly buffer to a static variable
 #[no_mangle]
 pub unsafe extern "C" fn buffer_to_rust(buffer: *const c_char) {
     let buffer_cstr = CStr::from_ptr(buffer);
