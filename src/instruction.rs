@@ -124,7 +124,8 @@ mod tests {
 
         let mut info = opcodes::DisassembleInfo::new().unwrap();
 
-        let mut instruction = instruction::Instruction::from_buffer(&mut info, bfd, &vec![0x90], 0);
+        let buffer = vec![0x90];
+        let mut instruction = instruction::Instruction::from_buffer(&mut info, bfd, &buffer, 0);
         match instruction.next() {
             Some(i) => assert_eq!(i.opcode, "nop"),
             None => assert!(false),

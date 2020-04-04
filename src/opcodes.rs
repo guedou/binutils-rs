@@ -226,7 +226,7 @@ mod tests {
         use section;
         use std;
 
-        let di = opcodes::DisassembleInfo::new().unwrap();
+        let mut di = opcodes::DisassembleInfo::new().unwrap();
         assert_ne!(di.info, std::ptr::null());
 
         let section = section::Section::null();
