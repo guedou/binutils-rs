@@ -50,7 +50,7 @@ int main (int argc, char ** argv) {
 
   asection section;
   section.vma = 0xC00000; // memory offset
-  section.flags = 0; // important: grep VLIW in opcpdes/dis-mep.c to know why!
+  section.flags = 0; // important: grep VLIW in opcodes/dis-mep.c to know why!
   info.section = &section;
 
   info.buffer_length = buffer_len;

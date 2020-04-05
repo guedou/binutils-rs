@@ -19,7 +19,7 @@ fn test_buffer_full(arch_name: &str, buffer: Vec<u8>, offset: u64) {
         return;
     }
 
-    // Retrive bfd_arch and bfd_mach from the architecture name
+    // Retrieve bfd_arch and bfd_mach from the architecture name
     let bfd_arch_mach = match bfd.set_arch_mach(arch_name) {
         Ok(arch_mach) => arch_mach,
         Err(e) => {
