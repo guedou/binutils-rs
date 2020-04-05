@@ -187,6 +187,8 @@ pub fn arch_list() -> Vec<String> {
         }
     }
 
+    unsafe { libc::free(list as *mut libc::c_void); }
+
     ret_vec
 }
 
