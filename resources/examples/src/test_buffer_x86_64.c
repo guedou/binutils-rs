@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
   /* Disassemble instruction from the buffer */
   pc = 0;
   for (int i=0; i < 3; i++) {
-    printf ("Address: 0x%x\n", pc);
+    printf ("Address: 0x%lx\n", pc);
     count = disassemble (pc, &info);
     pc += count;
     printf ("\nType: 0x%x\n", info.insn_type);
