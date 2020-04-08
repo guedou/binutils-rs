@@ -14,7 +14,7 @@ int buffer_len = 4;
 int buffer_ptr = 0;
 
 int copy_buffer(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length,
-		struct disassemble_info *dinfo) {
+  struct disassemble_info *dinfo) {
   // Copy our buffer to binutils
   
   if (length > buffer_len)
@@ -26,7 +26,7 @@ int copy_buffer(bfd_vma memaddr, bfd_byte *myaddr, unsigned int length,
   return 0;
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char** argv) {
   disassembler_ftype      disassemble;
   struct disassemble_info info;
   unsigned long           count, pc;
