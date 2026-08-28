@@ -133,11 +133,7 @@ fn build_binutils(version: &str, sha256sum: &str, output_directory: &str, target
     if path::Path::new(&binutils_name).exists() {
         change_dir(&binutils_name);
         let prefix_arg = format!("--prefix={}/built/", output_directory);
-        execute_command(
-            "./configure",
-            vec![&prefix_arg, &format!("--enable-targets={}", targets)],
-        );
-    
+
         // Set CFLAGS environment variable to include -fcommon
         // https://github.com/easybuilders/easybuild-easyconfigs/issues/11988
         std::env::set_var("CFLAGS", "-fcommon -g -O2");
